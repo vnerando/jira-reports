@@ -12,7 +12,7 @@ import path from 'path';
         // Define viewport tamanho A4 paisagem
         await page.setViewport({ width: 1280, height: 1024 });
 
-        const htmlPath = `file://${path.join(process.cwd(), 'executive_dashboard.html')}`;
+        const htmlPath = `file://${path.join(process.cwd(), 'executive_reports', 'executive_dashboard.html')}`;
         console.log(`Carregando Dashboard: ${htmlPath}`);
 
         // Acessa o HTML e aguarda o carregamento total inclusive da rede (Chart.js)
@@ -22,7 +22,7 @@ import path from 'path';
         console.log("Aguardando renderização dos gráficos Chart.js...");
         await new Promise(r => setTimeout(r, 2000));
 
-        const outputPath = path.join(process.cwd(), 'Relatorio_Executivo_Jira.pdf');
+        const outputPath = path.join(process.cwd(), 'executive_reports', 'Relatorio_Executivo_Jira.pdf');
         
         console.log("Gerando arquivo PDF...");
         await page.pdf({

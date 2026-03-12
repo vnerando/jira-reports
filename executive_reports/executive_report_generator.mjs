@@ -3,8 +3,8 @@
 import fs from 'fs';
 import path from 'path';
 
-const outputDir = path.join(process.cwd(), 'issues_by_type');
-const reportPath = path.join(process.cwd(), 'executive_summary.md');
+const outputDir = path.join(process.cwd(), 'raw_data', 'issues_by_type');
+const reportPath = path.join(process.cwd(), 'executive_reports', 'executive_summary.md');
 
 // Função auxiliar para converter milissegundos num formato amigável
 function formatMillisToFriendly(millis) {
@@ -46,6 +46,28 @@ let markdownReport = `# Relatório Executivo - SLA Jira (${tituloDataStr})\n\n`;
 markdownReport += `*Este relatório consolida o volume, tempo médio e taxas de violação de SLA por tipo de solicitação.*\n\n`;
 markdownReport += `---\n\n`;
 
+// Validar Exclusões de Negócio based on Jira SLAs
+function isSlaValidForAggregation(issue, slaName) {
+    const requestTypeObj = issue.fields.customfield_10010;
+    const requestType = requestTypeObj?.requestType?.name || requestTypeObj?.name || requestTypeObj || "";
+    const creatorId = issue.fields.creator?.accountId || "";
+    const reporterId = issue.fields.reporter?.accountId || "";
+    const assigneeId = issue.fields.assignee?.accountId || "";
+
+    if (slaName === 'resolution') {
+        if (typeof requestType === 'string' && requestType.includes("Transporte indisponivel")) return false;
+        return true;
+    }
+
+    if (slaName === 'firstResponse') {
+        if (creatorId === "qm:955b6e41-e3c5-480c-8c9f-aba4b14ef33b:3ddbe838-7745-4718-be74-388c0956fbe0") return false;
+        if (creatorId === "62388a2ca2f6400069e9bc0b") return false;
+        if (reporterId && assigneeId && reporterId === assigneeId) return false;
+        return true;
+    }
+    return true;
+}
+
 files.forEach(file => {
   const filepath = path.join(outputDir, file);
   const data = JSON.parse(fs.readFileSync(filepath, 'utf8'));
@@ -65,7 +87,8 @@ files.forEach(file => {
 
     // SLA Primeira Resposta (customfield_10033)
     const frSla = issue.fields.customfield_10033;
-    if (frSla && frSla.completedCycles && frSla.completedCycles.length > 0) {
+    const isValidFR = isSlaValidForAggregation(issue, 'firstResponse');
+    if (isValidFR && frSla && frSla.completedCycles && frSla.completedCycles.length > 0) {
       const lastCycle = frSla.completedCycles[frSla.completedCycles.length - 1];
       if (lastCycle.elapsedTime && lastCycle.elapsedTime.millis !== undefined) {
         metrics.firstResponse.totalMillis += lastCycle.elapsedTime.millis;
@@ -80,7 +103,8 @@ files.forEach(file => {
 
     // SLA Resolução (customfield_10032)
     const resSla = issue.fields.customfield_10032;
-    if (resSla && resSla.completedCycles && resSla.completedCycles.length > 0) {
+    const isValidRes = isSlaValidForAggregation(issue, 'resolution');
+    if (isValidRes && resSla && resSla.completedCycles && resSla.completedCycles.length > 0) {
       const lastCycle = resSla.completedCycles[resSla.completedCycles.length - 1];
       if (lastCycle.elapsedTime && lastCycle.elapsedTime.millis !== undefined) {
         metrics.resolution.totalMillis += lastCycle.elapsedTime.millis;
