@@ -42,7 +42,8 @@ console.log("Iniciando varredura analítica linha a linha...");
 const aggregation = {
   totalIssues: 0,
   byCreator: {},
-  resolutionTimeByType: {} // { "Incident": { totalMillis: X, count: Y }, ... }
+  resolutionTimeByType: {}, // { "Incident": { totalMillis: X, count: Y }, ... }
+  dailySLA: {} // { "YYYY-MM-DD": { frTotal: X, frCount: Y, resTotal: Z, resCount: W } }
 };
 
 // Mapeamento de Bots conhecidos para separar (heurística simples por nome)
@@ -56,9 +57,9 @@ files.forEach(file => {
     // Incrementa agregador de totais
     aggregation.totalIssues++;
 
-    // Agregações do Criador (separar Bot vs Humano)
+    // Agregações do Criador (separar Bot vs Humano sem prefixo estrito "Pessoa")
     const rawCreatorName = issue.fields.creator?.displayName || "Desconhecido";
-    const creatorGroup = botNames.some(bot => rawCreatorName.includes(bot)) ? `Bot (${rawCreatorName})` : `Pessoa (${rawCreatorName})`;
+    const creatorGroup = botNames.some(bot => rawCreatorName.includes(bot)) ? `[Bot] ${rawCreatorName}` : rawCreatorName;
     
     aggregation.byCreator[creatorGroup] = (aggregation.byCreator[creatorGroup] || 0) + 1;
 
@@ -73,6 +74,12 @@ files.forEach(file => {
     const assignee = issue.fields.assignee?.displayName || "N/A";
     const resolution = issue.fields.resolution?.name || "Em Aberto";
     const createdDate = new Date(issue.fields.created).toLocaleString('pt-BR');
+    
+    // Aggregation string Date for Daily SLA chart (YYYY-MM-DD)
+    const dayDate = issue.fields.created.substring(0, 10);
+    if (!aggregation.dailySLA[dayDate]) {
+        aggregation.dailySLA[dayDate] = { frTotal: 0, frCount: 0, resTotal: 0, resCount: 0 };
+    }
 
     // Analisando SLA 1 - Primeira Resposta
     let firstResponseBreached = "N/A";
@@ -82,6 +89,11 @@ files.forEach(file => {
       const lastCycle = frSla.completedCycles[frSla.completedCycles.length - 1];
       firstResponseBreached = lastCycle.breached ? "SIM" : "NAO";
       firstResponseTime = lastCycle.elapsedTime?.friendly || "0m";
+
+      if (lastCycle.elapsedTime && lastCycle.elapsedTime.millis !== undefined) {
+         aggregation.dailySLA[dayDate].frTotal += lastCycle.elapsedTime.millis;
+         aggregation.dailySLA[dayDate].frCount++;
+      }
     }
 
     // Analisando SLA 2 - Resolução Final
@@ -93,13 +105,17 @@ files.forEach(file => {
       resolutionBreached = lastCycle.breached ? "SIM" : "NAO";
       resolutionTime = lastCycle.elapsedTime?.friendly || "0m";
 
-      // Agrega tempo de resolução em millis
+      // Agrega tempo de resolução em millis para "Por Tipo"
       if (lastCycle.elapsedTime && lastCycle.elapsedTime.millis !== undefined) {
          if (!aggregation.resolutionTimeByType[type]) {
              aggregation.resolutionTimeByType[type] = { totalMillis: 0, count: 0 };
          }
          aggregation.resolutionTimeByType[type].totalMillis += lastCycle.elapsedTime.millis;
          aggregation.resolutionTimeByType[type].count++;
+
+         // Agrega tempo de resolução para o "Linha Diária"
+         aggregation.dailySLA[dayDate].resTotal += lastCycle.elapsedTime.millis;
+         aggregation.dailySLA[dayDate].resCount++;
       }
     }
 
@@ -141,6 +157,29 @@ for (const [t, data] of Object.entries(aggregation.resolutionTimeByType)) {
 const creatorLabels = Object.keys(aggregation.byCreator);
 const creatorData = Object.values(aggregation.byCreator);
 
+// 3. Formata os Tempos Diários de SLA para Linhas
+const sortedDays = Object.keys(aggregation.dailySLA).sort();
+const dailyLabels = [];
+const dailyFrAvg = [];
+const dailyResAvg = [];
+
+sortedDays.forEach(day => {
+    // Label format: DD/MM
+    const parts = day.split('-');
+    if(parts.length === 3) dailyLabels.push(`${parts[2]}/${parts[1]}`);
+    else dailyLabels.push(day);
+
+    const data = aggregation.dailySLA[day];
+    
+    let frAvg = 0;
+    if (data.frCount > 0) frAvg = parseFloat((Math.abs(data.frTotal / data.frCount) / (1000 * 60 * 60)).toFixed(2));
+    dailyFrAvg.push(frAvg);
+
+    let resAvg = 0;
+    if (data.resCount > 0) resAvg = parseFloat((Math.abs(data.resTotal / data.resCount) / (1000 * 60 * 60)).toFixed(2));
+    dailyResAvg.push(resAvg);
+});
+
 // Gera a página HTML da Dashboard Analítica
 const dataAtual = new Date();
 dataAtual.setMonth(dataAtual.getMonth() - 1);
@@ -152,7 +191,7 @@ const htmlTemplate = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Analítico de Ticket Causality - ${tituloMes}</title>
+    <title>Dashboard Analítico de Ticket Causality - \${tituloMes}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -160,22 +199,22 @@ const htmlTemplate = `<!DOCTYPE html>
     <div class="max-w-7xl mx-auto">
         <header class="mb-10 text-center">
             <h1 class="text-3xl font-bold text-indigo-900">Métricas Analíticas Aprofundadas</h1>
-            <p class="text-gray-500 mt-2">Origem, criadores e tempos de resolução detalhados em ${tituloMes}.</p>
+            <p class="text-gray-500 mt-2">Origem, criadores e tempos de resolução detalhados em \${tituloMes}.</p>
         </header>
 
         <div class="grid grid-cols-1 mb-10">
             <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                 <div>
                    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Total de Chamados Analisados</h2>
-                   <p class="text-5xl font-extrabold text-indigo-600 mt-2">${aggregation.totalIssues}</p>
+                   <p class="text-5xl font-extrabold text-indigo-600 mt-2">\${aggregation.totalIssues}</p>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <!-- Gráfico: Criadores (Pessoa vs Bot) -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-                <h3 class="font-bold text-lg mb-4 text-gray-700">Origem de Abertura (Pessoa vs Automações)</h3>
+                <h3 class="font-bold text-lg mb-4 text-gray-700">Origem de Abertura</h3>
                 <div class="relative w-full h-[300px] flex-1 flex justify-center items-center">
                     <canvas id="creatorChart"></canvas>
                 </div>
@@ -183,9 +222,19 @@ const htmlTemplate = `<!DOCTYPE html>
 
             <!-- Gráfico: Tempo de Resolução -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-                <h3 class="font-bold text-lg mb-4 text-gray-700">Média de Tempo de Resolução (Em Horas)</h3>
+                <h3 class="font-bold text-lg mb-4 text-gray-700">Média Horas Resolução (Por Tipo)</h3>
                 <div class="relative w-full h-[300px] flex-1 flex justify-center items-center">
                     <canvas id="resolutionTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1">
+            <!-- Gráfico: Evolução Diária dos SLAs -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+                <h3 class="font-bold text-lg mb-4 text-gray-700">Evolução Diária - Tempos de SLA (Em Horas)</h3>
+                <div class="relative w-full h-[400px] flex-1 flex justify-center items-center">
+                    <canvas id="dailySlaChart"></canvas>
                 </div>
             </div>
         </div>
@@ -193,11 +242,15 @@ const htmlTemplate = `<!DOCTYPE html>
 
     <script>
         // Dados Injetados Pelo Node.js
-        const creatorLabels = ${JSON.stringify(creatorLabels)};
-        const creatorData = ${JSON.stringify(creatorData)};
+        const creatorLabels = \${JSON.stringify(creatorLabels)};
+        const creatorData = \${JSON.stringify(creatorData)};
         
-        const typeLabels = ${JSON.stringify(Object.keys(avgResolutionHoursByType))};
-        const typeData = ${JSON.stringify(Object.values(avgResolutionHoursByType))};
+        const typeLabels = \${JSON.stringify(Object.keys(avgResolutionHoursByType))};
+        const typeData = \${JSON.stringify(Object.values(avgResolutionHoursByType))};
+
+        const dailyLabels = \${JSON.stringify(dailyLabels)};
+        const dailyFrAvg = \${JSON.stringify(dailyFrAvg)};
+        const dailyResAvg = \${JSON.stringify(dailyResAvg)};
 
         // Creator Doughnut
         new Chart(document.getElementById('creatorChart'), {
@@ -227,7 +280,7 @@ const htmlTemplate = `<!DOCTYPE html>
             data: {
                 labels: typeLabels,
                 datasets: [{
-                    label: 'Média Horas para Resolução',
+                    label: 'Horas',
                     data: typeData,
                     backgroundColor: 'rgba(99, 102, 241, 0.8)',
                     borderRadius: 4
@@ -242,11 +295,60 @@ const htmlTemplate = `<!DOCTYPE html>
                 }
             }
         });
+
+        // Daily Line Chart
+        new Chart(document.getElementById('dailySlaChart'), {
+            type: 'line',
+            data: {
+                labels: dailyLabels,
+                datasets: [
+                    {
+                        label: 'Primeira Resposta (Média Horas)',
+                        data: dailyFrAvg,
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Resolução (Média Horas)',
+                        data: dailyResAvg,
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + 'h';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Horas Corridas' } }
+                }
+            }
+        });
     </script>
 </body>
-</html>`;
+</html>\`;
 
 fs.writeFileSync(outputHtml, htmlTemplate, 'utf8');
 
-console.log(`✅ Dashboard Analítica (HTML) gerada com sucesso!`);
-console.log(`Caminho salvo: ${outputHtml}`);
+console.log(\`✅ Dashboard Analítica (HTML) gerada com sucesso!\`);
+console.log(\`Caminho salvo: \${outputHtml}\`);
