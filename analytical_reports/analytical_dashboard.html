@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Analítico de Ticket Causality - Fevereiro de 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 p-8 font-sans">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-10 text-center">
+            <h1 class="text-3xl font-bold text-indigo-900">Métricas Analíticas Aprofundadas</h1>
+            <p class="text-gray-500 mt-2">Origem, criadores e tempos de resolução detalhados em Fevereiro de 2026.</p>
+        </header>
+
+        <div class="grid grid-cols-1 mb-10">
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                   <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Total de Chamados Analisados</h2>
+                   <p class="text-5xl font-extrabold text-indigo-600 mt-2">209</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Gráfico: Criadores (Pessoa vs Bot) -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+                <h3 class="font-bold text-lg mb-4 text-gray-700">Origem de Abertura (Pessoa vs Automações)</h3>
+                <div class="relative w-full h-[300px] flex-1 flex justify-center items-center">
+                    <canvas id="creatorChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico: Tempo de Resolução -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+                <h3 class="font-bold text-lg mb-4 text-gray-700">Média de Tempo de Resolução (Em Horas)</h3>
+                <div class="relative w-full h-[300px] flex-1 flex justify-center items-center">
+                    <canvas id="resolutionTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados Injetados Pelo Node.js
+        const creatorLabels = ["Pessoa (Andrew Oliveira)","Pessoa (Alisson Miguel Bertocci)","Pessoa (NOC Grupo Cednet)","Pessoa (Gabriel Almeida Mattos)","Pessoa (Leonardo Henrique )","Pessoa (Infraestrutura)","Pessoa (T.I - Grupo CEDNET)","Pessoa (Vinicius de Moraes)","Pessoa (Maria Eduarda)","Pessoa (julia marcelino)","Pessoa (Emanuel)","Pessoa (Julberto Capra Jr)","Pessoa (João Gabriel Povoa de Goes)","Pessoa (Vinicius de Oliveira da Silva)","Pessoa (Luiz Gustavo Bachiega)","Pessoa (Gustavo Gigliotte Teixeira)","Pessoa (Elivelton Marques do Santos)","Pessoa (Daniel)","Pessoa (Eduardo Oliveira)","Pessoa (Marcos Vinicius Cardoso)","Pessoa (Marcio David Pereira do Carmo)","Pessoa (luiz henrique da silva)","Pessoa (Matheus Esposto Sagae)","Pessoa (Alexsander de Oliveira Brazão)","Pessoa (Guilherme Bacchiega de Jesus)","Pessoa (Fernando Felipe Constantino Callegari)","Pessoa (marco antonio pereira rodrigues)","Pessoa (Junior)","Pessoa (Luan Borges)","Pessoa (Nathan Soares da Silva)","Pessoa (vicente dutra de sousa)"];
+        const creatorData = [1,4,37,9,6,49,1,2,5,5,3,14,5,4,8,7,5,8,3,4,3,2,2,7,3,2,1,1,2,1,5];
+        
+        const typeLabels = ["Tarefa","[System] Incident","[System] Problem"];
+        const typeData = [1.8,2.06,17.9];
+
+        // Creator Doughnut
+        new Chart(document.getElementById('creatorChart'), {
+            type: 'pie',
+            data: {
+                labels: creatorLabels,
+                datasets: [{
+                    data: creatorData,
+                    backgroundColor: [
+                        '#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#0ea5e9', '#64748b'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+
+        // Resolution Bar
+        new Chart(document.getElementById('resolutionTimeChart'), {
+            type: 'bar',
+            data: {
+                labels: typeLabels,
+                datasets: [{
+                    label: 'Média Horas para Resolução',
+                    data: typeData,
+                    backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Horas Corridas' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
