@@ -191,7 +191,7 @@ const htmlTemplate = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Analítico de Ticket Causality - \${tituloMes}</title>
+    <title>Dashboard Analítico de Ticket Causality - ${tituloMes}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -199,14 +199,14 @@ const htmlTemplate = `<!DOCTYPE html>
     <div class="max-w-7xl mx-auto">
         <header class="mb-10 text-center">
             <h1 class="text-3xl font-bold text-indigo-900">Métricas Analíticas Aprofundadas</h1>
-            <p class="text-gray-500 mt-2">Origem, criadores e tempos de resolução detalhados em \${tituloMes}.</p>
+            <p class="text-gray-500 mt-2">Origem, criadores e tempos de resolução detalhados em ${tituloMes}.</p>
         </header>
 
         <div class="grid grid-cols-1 mb-10">
             <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                 <div>
                    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Total de Chamados Analisados</h2>
-                   <p class="text-5xl font-extrabold text-indigo-600 mt-2">\${aggregation.totalIssues}</p>
+                   <p class="text-5xl font-extrabold text-indigo-600 mt-2">${aggregation.totalIssues}</p>
                 </div>
             </div>
         </div>
@@ -242,15 +242,15 @@ const htmlTemplate = `<!DOCTYPE html>
 
     <script>
         // Dados Injetados Pelo Node.js
-        const creatorLabels = \${JSON.stringify(creatorLabels)};
-        const creatorData = \${JSON.stringify(creatorData)};
+        const creatorLabels = ${JSON.stringify(creatorLabels)};
+        const creatorData = ${JSON.stringify(creatorData)};
         
-        const typeLabels = \${JSON.stringify(Object.keys(avgResolutionHoursByType))};
-        const typeData = \${JSON.stringify(Object.values(avgResolutionHoursByType))};
+        const typeLabels = ${JSON.stringify(Object.keys(avgResolutionHoursByType))};
+        const typeData = ${JSON.stringify(Object.values(avgResolutionHoursByType))};
 
-        const dailyLabels = \${JSON.stringify(dailyLabels)};
-        const dailyFrAvg = \${JSON.stringify(dailyFrAvg)};
-        const dailyResAvg = \${JSON.stringify(dailyResAvg)};
+        const dailyLabels = ${JSON.stringify(dailyLabels)};
+        const dailyFrAvg = ${JSON.stringify(dailyFrAvg)};
+        const dailyResAvg = ${JSON.stringify(dailyResAvg)};
 
         // Creator Doughnut
         new Chart(document.getElementById('creatorChart'), {

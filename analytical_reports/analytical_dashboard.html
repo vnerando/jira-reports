@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Analítico de Ticket Causality - ${tituloMes}</title>
+    <title>Dashboard Analítico de Ticket Causality - Fevereiro de 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -11,14 +11,14 @@
     <div class="max-w-7xl mx-auto">
         <header class="mb-10 text-center">
             <h1 class="text-3xl font-bold text-indigo-900">Métricas Analíticas Aprofundadas</h1>
-            <p class="text-gray-500 mt-2">Origem, criadores e tempos de resolução detalhados em ${tituloMes}.</p>
+            <p class="text-gray-500 mt-2">Origem, criadores e tempos de resolução detalhados em Fevereiro de 2026.</p>
         </header>
 
         <div class="grid grid-cols-1 mb-10">
             <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                 <div>
                    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Total de Chamados Analisados</h2>
-                   <p class="text-5xl font-extrabold text-indigo-600 mt-2">${aggregation.totalIssues}</p>
+                   <p class="text-5xl font-extrabold text-indigo-600 mt-2">209</p>
                 </div>
             </div>
         </div>
@@ -54,15 +54,15 @@
 
     <script>
         // Dados Injetados Pelo Node.js
-        const creatorLabels = ${JSON.stringify(creatorLabels)};
-        const creatorData = ${JSON.stringify(creatorData)};
+        const creatorLabels = ["Andrew Oliveira","Alisson Miguel Bertocci","NOC Grupo Cednet","Gabriel Almeida Mattos","Leonardo Henrique ","Infraestrutura","T.I - Grupo CEDNET","Vinicius de Moraes","Maria Eduarda","julia marcelino","Emanuel","Julberto Capra Jr","João Gabriel Povoa de Goes","Vinicius de Oliveira da Silva","Luiz Gustavo Bachiega","Gustavo Gigliotte Teixeira","Elivelton Marques do Santos","Daniel","Eduardo Oliveira","Marcos Vinicius Cardoso","Marcio David Pereira do Carmo","luiz henrique da silva","Matheus Esposto Sagae","Alexsander de Oliveira Brazão","Guilherme Bacchiega de Jesus","Fernando Felipe Constantino Callegari","marco antonio pereira rodrigues","Junior","Luan Borges","Nathan Soares da Silva","vicente dutra de sousa"];
+        const creatorData = [1,4,37,9,6,49,1,2,5,5,3,14,5,4,8,7,5,8,3,4,3,2,2,7,3,2,1,1,2,1,5];
         
-        const typeLabels = ${JSON.stringify(Object.keys(avgResolutionHoursByType))};
-        const typeData = ${JSON.stringify(Object.values(avgResolutionHoursByType))};
+        const typeLabels = ["Tarefa","[System] Incident","[System] Problem"];
+        const typeData = [1.8,2.06,17.9];
 
-        const dailyLabels = ${JSON.stringify(dailyLabels)};
-        const dailyFrAvg = ${JSON.stringify(dailyFrAvg)};
-        const dailyResAvg = ${JSON.stringify(dailyResAvg)};
+        const dailyLabels = ["01/02","02/02","03/02","04/02","05/02","06/02","07/02","08/02","09/02","10/02","11/02","12/02","13/02","14/02","15/02","16/02","17/02","18/02","19/02","20/02","21/02","22/02","23/02","24/02","25/02","26/02","27/02","28/02"];
+        const dailyFrAvg = [0.71,1.44,29.39,0.28,8.21,0.8,6.36,58.35,0.9,2.63,5.61,11.54,0.84,2.61,0.88,1.58,1.13,1.94,0.3,12.06,5.09,0.77,0.71,9.39,2.45,0.43,11.66,0.73];
+        const dailyResAvg = [1.52,2.95,1.39,0.67,1.59,40.79,3.93,1.47,1.9,2.73,18.13,6.36,3.31,7.61,1.9,0.36,0.89,1.44,1.03,7.36,1.56,1.99,3.29,2.9,1.69,1.28,1.15,3.68];
 
         // Creator Doughnut
         new Chart(document.getElementById('creatorChart'), {
