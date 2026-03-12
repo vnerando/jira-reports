@@ -46,6 +46,28 @@ const aggregation = {
   dailySLA: {} // { "YYYY-MM-DD": { frTotal: X, frCount: Y, resTotal: Z, resCount: W } }
 };
 
+// Validar Exclusões de Negócio based on Jira SLAs
+function isSlaValidForAggregation(issue, slaName) {
+    const requestTypeObj = issue.fields.customfield_10010;
+    const requestType = requestTypeObj?.requestType?.name || requestTypeObj?.name || requestTypeObj || "";
+    const creatorId = issue.fields.creator?.accountId || "";
+    const reporterId = issue.fields.reporter?.accountId || "";
+    const assigneeId = issue.fields.assignee?.accountId || "";
+
+    if (slaName === 'resolution') {
+        if (typeof requestType === 'string' && requestType.includes("Transporte indisponivel")) return false;
+        return true;
+    }
+
+    if (slaName === 'firstResponse') {
+        if (creatorId === "qm:955b6e41-e3c5-480c-8c9f-aba4b14ef33b:3ddbe838-7745-4718-be74-388c0956fbe0") return false;
+        if (creatorId === "62388a2ca2f6400069e9bc0b") return false;
+        if (reporterId && assigneeId && reporterId === assigneeId) return false;
+        return true;
+    }
+    return true;
+}
+
 // Mapeamento de Bots conhecidos para separar (heurística simples por nome)
 const botNames = ['Automation for Jira', 'Jira Service Desk Widget', 'Jira Bot'];
 
@@ -85,12 +107,14 @@ files.forEach(file => {
     let firstResponseBreached = "N/A";
     let firstResponseTime = "N/A";
     const frSla = issue.fields.customfield_10033;
+    const isValidFR = isSlaValidForAggregation(issue, 'firstResponse');
+
     if (frSla && frSla.completedCycles && frSla.completedCycles.length > 0) {
       const lastCycle = frSla.completedCycles[frSla.completedCycles.length - 1];
       firstResponseBreached = lastCycle.breached ? "SIM" : "NAO";
       firstResponseTime = lastCycle.elapsedTime?.friendly || "0m";
 
-      if (lastCycle.elapsedTime && lastCycle.elapsedTime.millis !== undefined) {
+      if (isValidFR && lastCycle.elapsedTime && lastCycle.elapsedTime.millis !== undefined) {
          aggregation.dailySLA[dayDate].frTotal += lastCycle.elapsedTime.millis;
          aggregation.dailySLA[dayDate].frCount++;
       }
@@ -100,13 +124,15 @@ files.forEach(file => {
     let resolutionBreached = "N/A";
     let resolutionTime = "N/A";
     const resSla = issue.fields.customfield_10032;
+    const isValidRes = isSlaValidForAggregation(issue, 'resolution');
+
     if (resSla && resSla.completedCycles && resSla.completedCycles.length > 0) {
       const lastCycle = resSla.completedCycles[resSla.completedCycles.length - 1];
       resolutionBreached = lastCycle.breached ? "SIM" : "NAO";
       resolutionTime = lastCycle.elapsedTime?.friendly || "0m";
 
-      // Agrega tempo de resolução em millis para "Por Tipo"
-      if (lastCycle.elapsedTime && lastCycle.elapsedTime.millis !== undefined) {
+      if (isValidRes && lastCycle.elapsedTime && lastCycle.elapsedTime.millis !== undefined) {
+         // Agrega tempo de resolução em millis para "Por Tipo"
          if (!aggregation.resolutionTimeByType[type]) {
              aggregation.resolutionTimeByType[type] = { totalMillis: 0, count: 0 };
          }
@@ -232,7 +258,14 @@ const htmlTemplate = `<!DOCTYPE html>
         <div class="grid grid-cols-1">
             <!-- Gráfico: Evolução Diária dos SLAs -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-                <h3 class="font-bold text-lg mb-4 text-gray-700">Evolução Diária - Tempos de SLA (Em Horas)</h3>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg text-gray-700">Evolução Diária - Tempos de SLA (Em Horas)</h3>
+                    <span class="text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">Exclusões de Negócio Aplicadas</span>
+                </div>
+                <p class="text-xs text-gray-500 mb-6 italic">
+                    *Média filtrada. Regras: Resolução exclui Tipo "Link IP/Transporte Indisponível".<br>
+                    Primeira Resposta exclui Automations, Integrações e criados pela Própria Equipe.
+                </p>
                 <div class="relative w-full h-[400px] flex-1 flex justify-center items-center">
                     <canvas id="dailySlaChart"></canvas>
                 </div>
