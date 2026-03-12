@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jira SLA - Relatório Executivo</title>
+    <!-- Tailwind CSS Pelo CDN para estilização rápida executiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #f4f5f7; color: #172b4d; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif; }
+    </style>
+</head>
+<body class="p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-blue-800">Relatório Executivo de SLAs - <span id="h_month"></span></h1>
+            <p class="text-gray-600 mt-2">Visão geral do volume de operação e cumprimento de metas da equipe técnica.</p>
+        </header>
+
+        <!-- Cards de Resumo -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Volume Total</h3>
+                <p class="text-3xl font-bold mt-2">209 <span class="text-sm font-normal text-gray-400">Tickets</span></p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-green-500">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Resoluções Alvo (Incidentes)</h3>
+                <p class="text-3xl font-bold mt-2 text-green-600">92.6% <span class="text-sm font-normal text-gray-400 text-gray-600">Cumprido</span></p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-yellow-500">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Maior Gargalo Base</h3>
+                <p class="text-xl font-bold mt-2 text-yellow-600">Atribuição de Tickets</p>
+                <p class="text-xs mt-1 text-gray-500">Mais de 100 tickets transitaram no mês com owner "Não Atribuído".</p>
+            </div>
+        </div>
+
+        <!-- Área de Gráficos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            
+            <!-- Gráfico de Volume -->
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h2 class="text-lg font-bold mb-4">Volume por Tipo de Solicitação</h2>
+                <canvas id="volumeChart" height="200"></canvas>
+            </div>
+
+            <!-- Gráfico de SLA Resolução -->
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col">
+                <h2 class="text-lg font-bold mb-4">SLA de Resolução (Incidentes & Problemas)</h2>
+                <div class="relative w-full h-[250px] flex-1 flex justify-center items-center">
+                    <canvas id="slaChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Data Dinâmica do Título
+        const hMonth = document.getElementById('h_month');
+        const dataAtual = new Date();
+        dataAtual.setMonth(dataAtual.getMonth() - 1);
+        const mesPassadoStr = dataAtual.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+        hMonth.innerText = mesPassadoStr.charAt(0).toUpperCase() + mesPassadoStr.slice(1);
+
+        // Dados Estruturados retirados do nosso relatório JSON Mês Passado
+        
+        // Gráfico de Barras - Volume
+        const ctxVolume = document.getElementById('volumeChart').getContext('2d');
+        new Chart(ctxVolume, {
+            type: 'bar',
+            data: {
+                labels: ['Incidentes', 'Mudanças', 'Problemas', 'Tarefas', 'Req. Serviço'],
+                datasets: [{
+                    label: `Quantidade de Tickets (${mesPassadoStr})`,
+                    data: [108, 53, 26, 12, 10],
+                    backgroundColor: [
+                        'rgba(235, 87, 87, 0.8)', // Incident: Red
+                        'rgba(242, 153, 74, 0.8)', // Change: Orange
+                        'rgba(155, 81, 224, 0.8)', // Problem: Purple
+                        'rgba(45, 156, 219, 0.8)', // Tarefa: Blue
+                        'rgba(39, 174, 96, 0.8)'  // Service Req: Green
+                    ],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Gráfico de Rosca - SLA Resolução (Incidentes)
+        const ctxSla = document.getElementById('slaChart').getContext('2d');
+        new Chart(ctxSla, {
+            type: 'doughnut',
+            data: {
+                labels: ['Dentro da Meta (Met)', 'Violado (Breached)'],
+                datasets: [{
+                    data: [100, 8], // Resolução Incidentes 
+                    backgroundColor: [
+                        '#36B37E', // Atlassian Green
+                        '#FF5630', // Atlassian Red
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                cutout: '70%'
+            }
+        });
+    </script>
+</body>
+</html>

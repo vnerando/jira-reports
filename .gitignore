@@ -1,11 +1,10 @@
-# Ignorar variáveis de ambiente sensíveis (Tokens do Jira)
-.env
+# Ignorar variáveis de ambiente sensíveis (Tokens do Jira e Contas de Serviço)
+credentials/
 
 # Ignorar pacotes e dependências (se houver no futuro)
 node_modules/
 package-lock.json
 
 # Ignorar relatórios JSON pesados extraídos dinamicamente
-output.json
-sla_breaches_report.json
+raw_data/
 issues_by_type/
