@@ -346,9 +346,8 @@ const htmlTemplate = `<!DOCTYPE html>
         });
     </script>
 </body>
-</html>\`;
-
+</html>`;
 fs.writeFileSync(outputHtml, htmlTemplate, 'utf8');
 
-console.log(\`✅ Dashboard Analítica (HTML) gerada com sucesso!\`);
-console.log(\`Caminho salvo: \${outputHtml}\`);
+console.log(`✅ Dashboard Analítica (HTML) gerada com sucesso!`);
+console.log(`Caminho salvo: ${outputHtml}`);
