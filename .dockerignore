@@ -1,0 +1,15 @@
+node_modules
+portal/node_modules
+.env
+credentials/.env
+.git
+.gitignore
+.gemini
+google-credentials.json
+history.json
+analytical_reports/*.csv
+executive_reports/*.pdf
+run-all.mjs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

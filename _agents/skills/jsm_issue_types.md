@@ -42,5 +42,7 @@ Quando solicitar a criação de exportadores ou análises que cruzam diferentes 
 ```javascript
 // Exemplo Seguro
 const slaResolution = issue.fields.customfield_10032?.completedCycles || [];
-const cityRegion = issue.fields.customfield_10105?.value || "Desconhecida";
+const cityRegion = issue.fields.customfield_10105?.value || (typeof issue.fields.customfield_10105 === 'string' ? issue.fields.customfield_10105 : "Desconhecida");
 ```
+
+> **[📈 Aprimoramento Analítico]:** O mapeamento de `customfield_10105` é vital para estruturar relatórios geográficos (Top Cidades afetadas) agregando o volume por nó de rede ou localidade vinculada ao chamado.

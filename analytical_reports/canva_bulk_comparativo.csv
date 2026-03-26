@@ -1,0 +1,2 @@
+Mes_1,Criados_1,Resolvidos_1,Tempo_Resp_1,SLA_Resp_Pct_1,Mes_2,Criados_2,Resolvidos_2,Tempo_Resp_2,SLA_Resp_Pct_2,Mes_3,Criados_3,Resolvidos_3,Tempo_Resp_3,SLA_Resp_Pct_3,Analise_Comparativa
+"Dezembro de 2025",288,272,"0.39h","82.2%","Janeiro de 2026",262,250,"0.32h","86.9%","Fevereiro de 2026",209,203,"0.56h","80.0%","Comparativo do trimestre: Notamos uma queda no volume de chamados de 288 para 209. A aprovação do SLA de primeira resposta teve uma variação de -2.2%."

@@ -76,3 +76,14 @@ if (slaField && slaField.completedCycles && slaField.completedCycles.length > 0)
 Todas as regras de negócio complexas configuradas no painel administrativo do Jira (incluindo as exclusões JQL do painel SLA e pausas por falso-positivo em comentários de clientes) já **são absorvidas pelo motor interno do Jira**. 
 
 O array de `completedCycles` já fornece o `elapsedTime` e os tickets finalizados com precisão cirúrgica, processados e calculados nativamente. Basta puxar o último ciclo da issue e utilizar seus dados limpos!
+
+## 6. Identificação de Ofensores de SLA (Drill-Down)
+Para rastrear quais *Request Types* ou categorias mais estouram SLAs no mês, cruze a flag `lastCycle.breached === true` com o campo de Request Type (`customfield_10010`):
+
+```javascript
+if (lastCycle.breached) {
+    const reqTypeName = issue.fields.customfield_10010?.requestType?.name || "Desconhecido";
+    counts[reqTypeName] = (counts[reqTypeName] || 0) + 1;
+}
+```
+Isso permite isolar gargalos crônicos na operação em dashboards analíticos.

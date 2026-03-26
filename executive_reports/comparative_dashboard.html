@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Comparativo JSM</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f4f5f7; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0; padding: 20px; }
+        .chart-container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 800px; height: 400px; margin-bottom: 20px;}
+        h2 { color: #172B4D; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        <h2>Comparativo de Volume Lado a Lado</h2>
+        <canvas id="compVolumeChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <h2>Evolução do Cumprimento do SLA (%)</h2>
+        <canvas id="compSlaChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <h2>Tempo Médio de Primeira Resposta (Horas)</h2>
+        <canvas id="compFrTimeChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <h2>Tempo Médio de Resolução (Horas)</h2>
+        <canvas id="compResTimeChart"></canvas>
+    </div>
+
+    <script>
+        const ctxVol = document.getElementById('compVolumeChart').getContext('2d');
+        new Chart(ctxVol, {
+            type: 'bar',
+            data: {
+                labels: ["Dezembro de 2025","Janeiro de 2026","Fevereiro de 2026"],
+                datasets: [
+                    { label: 'Chamados Criados', data: [288,262,209], backgroundColor: '#FF5630', borderRadius: 6 },
+                    { label: 'Chamados Resolvidos', data: [272,250,203], backgroundColor: '#36B37E', borderRadius: 6 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+
+        const ctxSla = document.getElementById('compSlaChart').getContext('2d');
+        new Chart(ctxSla, {
+            type: 'line',
+            data: {
+                labels: ["Dezembro de 2025","Janeiro de 2026","Fevereiro de 2026"],
+                datasets: [
+                    { label: 'SLA 1ª Resposta Met %', data: [82.2,86.9,80], borderColor: '#0052CC', backgroundColor: '#0052CC', tension: 0.2, fill: false, borderWidth: 3 },
+                    { label: 'SLA Resolução Met %', data: [93.4,91.4,88.1], borderColor: '#00B8D9', backgroundColor: '#00B8D9', tension: 0.2, fill: false, borderWidth: 3 }
+                ]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { min: 0, max: 100 } }
+            }
+        });
+
+        const ctxFrTime = document.getElementById('compFrTimeChart').getContext('2d');
+        new Chart(ctxFrTime, {
+            type: 'line',
+            data: {
+                labels: ["Dezembro de 2025","Janeiro de 2026","Fevereiro de 2026"],
+                datasets: [
+                    { label: 'Tempo Médio 1ª Resposta (h)', data: [0.39,0.32,0.56], borderColor: '#FFAB00', backgroundColor: '#FFAB00', tension: 0.2, fill: false, borderWidth: 3 }
+                ]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        const ctxResTime = document.getElementById('compResTimeChart').getContext('2d');
+        new Chart(ctxResTime, {
+            type: 'line',
+            data: {
+                labels: ["Dezembro de 2025","Janeiro de 2026","Fevereiro de 2026"],
+                datasets: [
+                    { label: 'Tempo Médio Resolução (h)', data: [4.13,6.62,4.9], borderColor: '#6554C0', backgroundColor: '#6554C0', tension: 0.2, fill: false, borderWidth: 3 }
+                ]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    </script>
+</body>
+</html>

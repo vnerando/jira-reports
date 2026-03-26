@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  jira-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: noc-jira-dashboard
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./analytical_reports:/usr/src/app/analytical_reports
+      - ./executive_reports:/usr/src/app/executive_reports
+      - ./credentials:/usr/src/app/credentials:ro
+    environment:
+      - NODE_ENV=production
+      - PORT_SERVER=3000

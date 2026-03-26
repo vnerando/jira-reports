@@ -6,7 +6,10 @@ import path from 'path';
 const {
   JIRA_DOMAIN,
   JIRA_EMAIL,
-  JIRA_API_TOKEN
+  JIRA_API_TOKEN,
+  MONTH_OFFSET = "1",
+  START_DATE,
+  END_DATE
 } = process.env;
 
 if (!JIRA_DOMAIN || !JIRA_EMAIL || !JIRA_API_TOKEN) {
@@ -14,6 +17,7 @@ if (!JIRA_DOMAIN || !JIRA_EMAIL || !JIRA_API_TOKEN) {
   process.exit(1);
 }
 
+const offset = parseInt(MONTH_OFFSET);
 const authToken = Buffer.from(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`).toString('base64');
 const endpoint = `https://${JIRA_DOMAIN}/rest/api/3/search/jql`;
 
@@ -23,7 +27,11 @@ function sanitizeFilename(name) {
 }
 
 async function fetchAndSeparateIssues() {
-  const jqlQuery = `project = "Grupo Cednet" AND created >= startOfMonth("-1") AND created <= endOfMonth("-1") ORDER BY created DESC`;
+  let jqlQuery = `project = "Grupo Cednet" AND created >= startOfMonth("-${offset}") AND created <= endOfMonth("-${offset}") ORDER BY created DESC`;
+
+  if (START_DATE && END_DATE) {
+      jqlQuery = `project = "Grupo Cednet" AND created >= "${START_DATE}" AND created <= "${END_DATE}" ORDER BY created DESC`;
+  }
 
   const payload = {
     jql: jqlQuery,
@@ -105,7 +113,12 @@ async function fetchAndSeparateIssues() {
 
     console.log("-> Separando e salvando arquivos...\n");
     const outputDir = path.join(process.cwd(), 'issues_by_type');
-    if (!fs.existsSync(outputDir)) {
+    if (fs.existsSync(outputDir)) {
+      // Limpar arquivos JSON existentes para não misturar meses
+      const existingFiles = fs.readdirSync(outputDir).filter(f => f.endsWith('.json'));
+      existingFiles.forEach(f => fs.unlinkSync(path.join(outputDir, f)));
+      console.log(`-> Limpando ${existingFiles.length} arquivos antigos em issues_by_type...`);
+    } else {
       fs.mkdirSync(outputDir);
     }
 

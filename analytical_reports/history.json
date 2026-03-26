@@ -1,0 +1,50 @@
+[
+  {
+    "label": "Bimestre",
+    "startDate": "2026-01-01",
+    "endDate": "2026-03-25",
+    "created_at": "2026-03-25T14:48:45.292Z"
+  },
+  {
+    "label": "Fev_2026",
+    "startDate": "2026-02-01",
+    "endDate": "2026-02-28",
+    "created_at": "2026-03-23T19:21:17.613Z"
+  },
+  {
+    "label": "FEv_2026_2",
+    "startDate": "2026-02-01",
+    "endDate": "2026-02-28",
+    "created_at": "2026-03-23T19:03:29.368Z"
+  },
+  {
+    "label": "Semana_Passada",
+    "startDate": "2026-03-16",
+    "endDate": "2026-03-22",
+    "created_at": "2026-03-25T18:27:21.651Z"
+  },
+  {
+    "label": "Ano_Corrente_2026",
+    "startDate": "2026-01-01",
+    "endDate": "2026-03-23",
+    "created_at": "2026-03-23T19:28:02.466Z"
+  },
+  {
+    "label": "Fevereiro_2026",
+    "startDate": "2026-02-01",
+    "endDate": "2026-02-28",
+    "created_at": "2026-03-25T15:20:12.672Z"
+  },
+  {
+    "label": "Trimestre",
+    "startDate": "2025-12-01",
+    "endDate": "2026-03-24",
+    "created_at": "2026-03-24T18:54:42.133Z"
+  },
+  {
+    "label": "Semestre",
+    "startDate": "2025-09-01",
+    "endDate": "2026-03-24",
+    "created_at": "2026-03-24T18:55:32.469Z"
+  }
+]

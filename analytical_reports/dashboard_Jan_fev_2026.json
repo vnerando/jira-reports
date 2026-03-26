@@ -1,0 +1,498 @@
+{
+  "totalIssues": 467,
+  "resolvedIssues": 452,
+  "volumeByType": {
+    "Tarefa": 23,
+    "[System] Change": 114,
+    "[System] Incident": 250,
+    "[System] Problem": 63,
+    "[System] Service request": 17
+  },
+  "rootCausesIncident": {
+    "Indisponibilidade Fibra": 138,
+    "Serviço indisponível": 4,
+    "Rompimento entre Cidades": 9,
+    "POP (Base) indisponível": 34,
+    "Ponto de Acesso (AP) Indisponível": 35,
+    "Relatar Intermitência": 3,
+    "Link Rádio (PTP) indisponível": 20,
+    "Link IP/Transporte indisponivel": 7
+  },
+  "rootCausesProblem": {
+    "Degradação de sinal óptico": 21,
+    "Perda de pacote": 16,
+    "Latência Alta": 6,
+    "Sem energia": 9,
+    "Relatar problema": 9,
+    "Problemas de atenuação": 1
+  },
+  "byCity": {
+    "Chavantes": 22,
+    "Cerqueira César": 20,
+    "Ipaussu": 27,
+    "São Berto": 5,
+    "Ourinhos": 61,
+    "Carlópolis": 56,
+    "Fartura": 52,
+    "Ribeirão Claro": 13,
+    "Siqueira Campos": 2,
+    "Taguaí": 18,
+    "Piraju": 22,
+    "Bernardino de Campos": 26,
+    "Santa Cruz do Rio Pardo": 32,
+    "Barão de Antonina": 3,
+    "Taquaras": 1,
+    "Timburi": 10,
+    "São Pedro do Turvo": 9,
+    "Manduri": 26,
+    "Sarutaia": 9,
+    "Salto Grande": 4,
+    "Tejupa": 12,
+    "Lageado": 8,
+    "Ribeirão Bonito": 1,
+    "Canitar": 4,
+    "Aguas de Santa Bárbara": 11,
+    "Ilha Bela": 2,
+    "Oleo": 6,
+    "Salto do Itararé": 3,
+    "Praia Morena": 1,
+    "Itaí": 1
+  },
+  "slaOffenders": {
+    "Verificação Técnica": 12,
+    "Acompanhamento Técnico": 5,
+    "Manutenção e Reparos": 38,
+    "Atualização": 9,
+    "Instalações": 3,
+    "Retiradas": 4,
+    "Manuntenção Preventiva": 3,
+    "Requisição de mudança": 2,
+    "Manuntenção Corretiva": 1,
+    "Indisponibilidade Fibra": 37,
+    "Rompimento entre Cidades": 9,
+    "Ponto de Acesso (AP) Indisponível": 7,
+    "POP (Base) indisponível": 13,
+    "Relatar Intermitência": 3,
+    "Link Rádio (PTP) indisponível": 4,
+    "Link IP/Transporte indisponivel": 9,
+    "Degradação de sinal óptico": 9,
+    "Sem energia": 12,
+    "Perda de pacote": 5,
+    "Relatar problema": 10,
+    "Latência Alta": 2,
+    "Problemas de atenuação": 2,
+    "Requisitar Serviço": 7
+  },
+  "byCreator": {
+    "Andrew Oliveira": 8,
+    "Alisson Miguel Bertocci": 8,
+    "NOC Grupo Cednet": 94,
+    "Gabriel Almeida Mattos": 17,
+    "Leonardo Henrique ": 12,
+    "Infraestrutura": 103,
+    "claudio henrique dumas dias": 2,
+    "Marcos Ribeiro": 1,
+    "T.I - Grupo CEDNET": 5,
+    "Julberto Capra Jr": 29,
+    "Maria Eduarda": 10,
+    "julia marcelino": 12,
+    "Emanuel": 15,
+    "João Gabriel Povoa de Goes": 10,
+    "Vinicius de Oliveira da Silva": 8,
+    "Luiz Gustavo Bachiega": 13,
+    "Gustavo Gigliotte Teixeira": 15,
+    "Elivelton Marques do Santos": 8,
+    "Daniel": 11,
+    "Eduardo Oliveira": 7,
+    "Marcos Vinicius Cardoso": 7,
+    "Marcio David Pereira do Carmo": 5,
+    "Vinicius de Moraes": 5,
+    "luiz henrique da silva": 5,
+    "Matheus Esposto Sagae": 5,
+    "Alexsander de Oliveira Brazão": 9,
+    "Guilherme Bacchiega de Jesus": 5,
+    "Fernando Felipe Constantino Callegari": 10,
+    "marco antonio pereira rodrigues": 5,
+    "Junior": 1,
+    "Luan Borges": 5,
+    "Mayara Fernandes Figueiredo": 2,
+    "Maria Luíza Oliveira e Silva": 5,
+    "vicente dutra de sousa": 8,
+    "Chrystyan Albuquerque": 1,
+    "Julio Cesar": 1
+  },
+  "resolutionTimeByType": {
+    "Tarefa": {
+      "totalMillis": 210226972,
+      "count": 22
+    },
+    "[System] Incident": {
+      "totalMillis": 1663203815,
+      "count": 250
+    },
+    "[System] Problem": {
+      "totalMillis": 5125165362,
+      "count": 61
+    }
+  },
+  "dailySLA": {
+    "2026-02-25": {
+      "frTotal": 96954207,
+      "frCount": 11,
+      "resTotal": 48665956,
+      "resCount": 8
+    },
+    "2026-02-24": {
+      "frTotal": 304315183,
+      "frCount": 9,
+      "resTotal": 52165437,
+      "resCount": 5
+    },
+    "2026-02-23": {
+      "frTotal": 15380328,
+      "frCount": 6,
+      "resTotal": 59219943,
+      "resCount": 5
+    },
+    "2026-02-22": {
+      "frTotal": 24939851,
+      "frCount": 9,
+      "resTotal": 64528376,
+      "resCount": 9
+    },
+    "2026-02-21": {
+      "frTotal": 165067826,
+      "frCount": 9,
+      "resTotal": 33674670,
+      "resCount": 6
+    },
+    "2026-02-18": {
+      "frTotal": 41995447,
+      "frCount": 6,
+      "resTotal": 20687171,
+      "resCount": 4
+    },
+    "2026-02-17": {
+      "frTotal": 28355805,
+      "frCount": 7,
+      "resTotal": 19249717,
+      "resCount": 6
+    },
+    "2026-02-15": {
+      "frTotal": 9463546,
+      "frCount": 3,
+      "resTotal": 20493533,
+      "resCount": 3
+    },
+    "2026-02-14": {
+      "frTotal": 65688361,
+      "frCount": 7,
+      "resTotal": 191695073,
+      "resCount": 7
+    },
+    "2026-02-03": {
+      "frTotal": 1481356500,
+      "frCount": 14,
+      "resTotal": 40153883,
+      "resCount": 8
+    },
+    "2026-01-24": {
+      "frTotal": 12475343,
+      "frCount": 4,
+      "resTotal": 79705161,
+      "resCount": 4
+    },
+    "2026-01-23": {
+      "frTotal": 4014356,
+      "frCount": 4,
+      "resTotal": 37733310,
+      "resCount": 4
+    },
+    "2026-01-18": {
+      "frTotal": 538906160,
+      "frCount": 5,
+      "resTotal": 46651284,
+      "resCount": 4
+    },
+    "2026-01-17": {
+      "frTotal": 24283997,
+      "frCount": 8,
+      "resTotal": 45353776,
+      "resCount": 8
+    },
+    "2026-01-13": {
+      "frTotal": 509859431,
+      "frCount": 13,
+      "resTotal": 32018257,
+      "resCount": 5
+    },
+    "2026-01-12": {
+      "frTotal": 1320218780,
+      "frCount": 8,
+      "resTotal": 85044095,
+      "resCount": 5
+    },
+    "2026-01-08": {
+      "frTotal": 2179332292,
+      "frCount": 13,
+      "resTotal": 53310662,
+      "resCount": 11
+    },
+    "2026-01-03": {
+      "frTotal": 148790291,
+      "frCount": 6,
+      "resTotal": 40245476,
+      "resCount": 5
+    },
+    "2026-02-27": {
+      "frTotal": 251834560,
+      "frCount": 6,
+      "resTotal": 12419187,
+      "resCount": 3
+    },
+    "2026-02-26": {
+      "frTotal": 12510528,
+      "frCount": 8,
+      "resTotal": 22987522,
+      "resCount": 5
+    },
+    "2026-02-20": {
+      "frTotal": 260538497,
+      "frCount": 6,
+      "resTotal": 132557911,
+      "resCount": 5
+    },
+    "2026-02-19": {
+      "frTotal": 7454802,
+      "frCount": 7,
+      "resTotal": 7414095,
+      "resCount": 2
+    },
+    "2026-02-16": {
+      "frTotal": 68357274,
+      "frCount": 12,
+      "resTotal": 14185260,
+      "resCount": 11
+    },
+    "2026-02-12": {
+      "frTotal": 456871036,
+      "frCount": 11,
+      "resTotal": 205950866,
+      "resCount": 9
+    },
+    "2026-02-11": {
+      "frTotal": 201924355,
+      "frCount": 10,
+      "resTotal": 261063567,
+      "resCount": 4
+    },
+    "2026-02-10": {
+      "frTotal": 94783586,
+      "frCount": 10,
+      "resTotal": 39339374,
+      "resCount": 4
+    },
+    "2026-02-09": {
+      "frTotal": 29172797,
+      "frCount": 9,
+      "resTotal": 54646015,
+      "resCount": 8
+    },
+    "2026-02-08": {
+      "frTotal": 420120775,
+      "frCount": 2,
+      "resTotal": 5309352,
+      "resCount": 1
+    },
+    "2026-02-07": {
+      "frTotal": 91582615,
+      "frCount": 4,
+      "resTotal": 42456652,
+      "resCount": 3
+    },
+    "2026-02-05": {
+      "frTotal": 265952150,
+      "frCount": 9,
+      "resTotal": 34345276,
+      "resCount": 6
+    },
+    "2026-02-04": {
+      "frTotal": 5981481,
+      "frCount": 6,
+      "resTotal": 9685240,
+      "resCount": 4
+    },
+    "2026-02-02": {
+      "frTotal": 31076544,
+      "frCount": 6,
+      "resTotal": 10603574,
+      "resCount": 1
+    },
+    "2026-01-30": {
+      "frTotal": 195642810,
+      "frCount": 9,
+      "resTotal": 41543996,
+      "resCount": 7
+    },
+    "2026-01-29": {
+      "frTotal": 2810500600,
+      "frCount": 13,
+      "resTotal": 2287549849,
+      "resCount": 6
+    },
+    "2026-01-27": {
+      "frTotal": 235589005,
+      "frCount": 15,
+      "resTotal": 69829404,
+      "resCount": 10
+    },
+    "2026-01-26": {
+      "frTotal": 38152523,
+      "frCount": 8,
+      "resTotal": 14330929,
+      "resCount": 5
+    },
+    "2026-01-22": {
+      "frTotal": 781246235,
+      "frCount": 9,
+      "resTotal": 31060838,
+      "resCount": 6
+    },
+    "2026-01-21": {
+      "frTotal": 28139295,
+      "frCount": 6,
+      "resTotal": 3096240,
+      "resCount": 2
+    },
+    "2026-01-20": {
+      "frTotal": 122034585,
+      "frCount": 10,
+      "resTotal": 55871961,
+      "resCount": 6
+    },
+    "2026-01-19": {
+      "frTotal": 226447810,
+      "frCount": 9,
+      "resTotal": 66316325,
+      "resCount": 4
+    },
+    "2026-01-16": {
+      "frTotal": 4540186,
+      "frCount": 6,
+      "resTotal": 5379043,
+      "resCount": 4
+    },
+    "2026-01-15": {
+      "frTotal": 291881392,
+      "frCount": 13,
+      "resTotal": 319153974,
+      "resCount": 11
+    },
+    "2026-01-14": {
+      "frTotal": 547031315,
+      "frCount": 11,
+      "resTotal": 269209302,
+      "resCount": 8
+    },
+    "2026-01-11": {
+      "frTotal": 1053484025,
+      "frCount": 9,
+      "resTotal": 40417255,
+      "resCount": 8
+    },
+    "2026-01-10": {
+      "frTotal": 4237009,
+      "frCount": 6,
+      "resTotal": 34040203,
+      "resCount": 5
+    },
+    "2026-01-09": {
+      "frTotal": 27358732,
+      "frCount": 10,
+      "resTotal": 57524149,
+      "resCount": 9
+    },
+    "2026-01-07": {
+      "frTotal": 40492820,
+      "frCount": 9,
+      "resTotal": 38908080,
+      "resCount": 6
+    },
+    "2026-01-06": {
+      "frTotal": 195755989,
+      "frCount": 12,
+      "resTotal": 455748490,
+      "resCount": 11
+    },
+    "2026-01-05": {
+      "frTotal": 32036770,
+      "frCount": 17,
+      "resTotal": 97925026,
+      "resCount": 11
+    },
+    "2026-01-01": {
+      "frTotal": 10981873,
+      "frCount": 5,
+      "resTotal": 15025064,
+      "resCount": 4
+    },
+    "2026-02-13": {
+      "frTotal": 15065324,
+      "frCount": 5,
+      "resTotal": 59548566,
+      "resCount": 5
+    },
+    "2026-02-06": {
+      "frTotal": 20217993,
+      "frCount": 7,
+      "resTotal": 1027801999,
+      "resCount": 7
+    },
+    "2026-02-01": {
+      "frTotal": 10180123,
+      "frCount": 4,
+      "resTotal": 21951760,
+      "resCount": 4
+    },
+    "2026-01-31": {
+      "frTotal": 6495242,
+      "frCount": 4,
+      "resTotal": 22584868,
+      "resCount": 4
+    },
+    "2026-01-28": {
+      "frTotal": 359452844,
+      "frCount": 8,
+      "resTotal": 24686528,
+      "resCount": 7
+    },
+    "2026-01-04": {
+      "frTotal": 5980735,
+      "frCount": 3,
+      "resTotal": 41968945,
+      "resCount": 3
+    },
+    "2026-01-02": {
+      "frTotal": 8347411,
+      "frCount": 7,
+      "resTotal": 40169684,
+      "resCount": 6
+    },
+    "2026-01-25": {
+      "frTotal": 2453356,
+      "frCount": 1,
+      "resTotal": 33394000,
+      "resCount": 1
+    }
+  },
+  "slaSummary": {
+    "frMet": 292,
+    "frBreached": 172,
+    "frTotalMillis": 16243304706,
+    "frCount": 464,
+    "resMet": 299,
+    "resBreached": 34,
+    "resTotalMillis": 6998596149,
+    "resCount": 333
+  }
+}
