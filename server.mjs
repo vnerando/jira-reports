@@ -226,11 +226,16 @@ const server = http.createServer(async (req, res) => {
 
   // API para Gerar PDF (Cache em memória + pipeline na falta)
   if (decodedUrl.startsWith('/api/download-pdf/') && req.method === 'GET') {
-      const label = decodedUrl.split('/').pop();
+      const label = sanitizeLabel(decodedUrl.split('/').pop());
+      if (!label) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Label inválida.' }));
+          return;
+      }
 
       // ── Serve do cache de PDF se já existir ──────────────────────────────
       if (pdfCache.has(label)) {
-          console.log(`[Cache] HIT pdf: ${label}`);
+          console.log(`[Cache] Servindo PDF para ${label} via memória.`);
           res.writeHead(200, {
               'Content-Type': 'application/pdf',
               'Content-Disposition': `attachment; filename="Relatorio_Executivo_${label}.pdf"`
@@ -268,10 +273,9 @@ const server = http.createServer(async (req, res) => {
                           reject(new Error(err.message));
                           return;
                       }
-                      // O script sinaliza o caminho do PDF via ###PDF###...###PDF###
                       const match = stdout.match(/###PDF###(.+)###PDF###/);
                       if (!match) {
-                          reject(new Error('PDF não foi gerado corretamente. Caminho não encontrado na saída.'));
+                          reject(new Error('PDF não foi gerado corretamente.'));
                           return;
                       }
                       resolve(match[1].trim());
@@ -279,11 +283,9 @@ const server = http.createServer(async (req, res) => {
               );
           });
 
-          // 3. Lê e envia o PDF gerado
           if (!fs.existsSync(pdfPath)) throw new Error(`Arquivo PDF não encontrado: ${pdfPath}`);
           const pdfBuffer = fs.readFileSync(pdfPath);
 
-          // Salva no cache para próximas requisições
           pdfCache.set(label, pdfBuffer);
           console.log(`[Cache] PDF armazenado em memória: ${label}`);
 
@@ -292,10 +294,63 @@ const server = http.createServer(async (req, res) => {
               'Content-Disposition': `attachment; filename="Relatorio_Executivo_${label}.pdf"`
           });
           res.end(pdfBuffer);
-          console.log(`✅ PDF "${path.basename(pdfPath)}" enviado com sucesso.`);
+          console.log(`✅ PDF "${path.basename(pdfPath)}" enviado.`);
 
       } catch (err) {
           console.error('❌ Erro ao gerar PDF:', err.message);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+      return;
+  }
+
+  // API para Gerar/Baixar Apresentação (Slides baseados no PDF NOC)
+  if (decodedUrl.startsWith('/api/download-presentation/') && req.method === 'GET') {
+      const label = sanitizeLabel(decodedUrl.split('/').pop());
+      if (!label) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Label inválida.' }));
+          return;
+      }
+
+      console.log(`[API] Gerando Apresentação NOC para o label: ${label}`);
+
+      try {
+          const historyPath = path.join(process.cwd(), 'analytical_reports', 'history.json');
+          if (!fs.existsSync(historyPath)) throw new Error('Histórico não encontrado.');
+
+          const history = JSON.parse(fs.readFileSync(historyPath, 'utf8'));
+          const entry = history.find(h => h.label === label);
+          if (!entry) throw new Error(`Label "${label}" não encontrado.`);
+
+          const pdfPath = await new Promise((resolve, reject) => {
+              exec(
+                  `node executive_reports/generate_presentation.mjs`,
+                  { env: { ...process.env, REPORT_LABEL: label }, timeout: 180000, cwd: process.cwd() },
+                  (err, stdout, stderr) => {
+                      if (err) {
+                          console.error('[Presentation Generator Error]', err.message, stderr);
+                          reject(new Error(err.message));
+                          return;
+                      }
+                      const match = stdout.match(/###PDF_PRESENTATION###(.+)###PDF_PRESENTATION###/);
+                      if (!match) return reject(new Error('Apresentação não gerada.'));
+                      resolve(match[1].trim());
+                  }
+              );
+          });
+
+          if (!fs.existsSync(pdfPath)) throw new Error(`Arquivo não encontrado: ${pdfPath}`);
+          const pdfBuffer = fs.readFileSync(pdfPath);
+
+          res.writeHead(200, {
+              'Content-Type': 'application/pdf',
+              'Content-Disposition': `attachment; filename="Apresentacao_NOC_${label}.pdf"`
+          });
+          res.end(pdfBuffer);
+          console.log(`✅ Apresentação "${path.basename(pdfPath)}" enviada.`);
+      } catch (err) {
+          console.error('❌ Erro ao gerar Apresentação:', err.message);
           res.writeHead(500, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: false, error: err.message }));
       }
