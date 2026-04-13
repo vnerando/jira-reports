@@ -86,6 +86,18 @@ function isSlaValidForAggregation(issue, slaName) {
 // Mapeamento de Bots conhecidos para separar (heurística simples por nome)
 const botNames = ['Automation for Jira', 'Jira Service Desk Widget', 'Jira Bot'];
 
+// Função para normalizar resumos (Availability grouping)
+function normalizeSummary(summary) {
+    if (!summary) return "N/A";
+    let str = summary.toLowerCase();
+    const availabilityTerms = ['caiu', 'down', 'indisponivel', 'indisponível', 'off', 'queda', 'fora do ar', 'desconectado', 'offline', 'sem sinal'];
+    if (availabilityTerms.some(term => str.includes(term))) return "Indisponibilidade / Queda de Serviço";
+    str = str.replace(/\[.*?\]/g, '').replace(/gc-\d+/g, '').replace(/re:|fwd:|resumo:|assunto:/g, '').replace(/\d{8,}/g, '');
+    return str.trim() || summary;
+}
+
+const recurringGroups = {}; // { "City|Summary": { city, summary, issues: [createdDates] } }
+
 files.forEach(file => {
   const filepath = path.join(inputDir, file);
   const data = JSON.parse(fs.readFileSync(filepath, 'utf8'));
@@ -141,6 +153,14 @@ files.forEach(file => {
     if (resolvedStatuses.includes(status)) {
         aggregation.resolvedIssues++;
     }
+
+    // Lógica de Recorrência
+    const normSummary = normalizeSummary(summary);
+    const groupKey = `${city} | ${normSummary}`;
+    if (!recurringGroups[groupKey]) {
+        recurringGroups[groupKey] = { city, summary: normSummary, issues: [] };
+    }
+    recurringGroups[groupKey].issues.push(new Date(issue.fields.created));
 
     // Analisando SLA 1 - Primeira Resposta
     let firstResponseBreached = "N/A";
@@ -254,6 +274,22 @@ const topProblems = Object.entries(aggregation.rootCausesProblem).sort((a,b) => 
 const topCities = Object.entries(aggregation.byCity).sort((a,b) => b[1]-a[1]).slice(0, 5);
 const topOffenders = Object.entries(aggregation.slaOffenders).sort((a,b) => b[1]-a[1]).slice(0, 5);
 
+// 3.1 Processar Recorrência e TBF
+const recurringResults = Object.values(recurringGroups)
+    .filter(g => g.issues.length > 1)
+    .map(g => {
+        g.issues.sort((a, b) => a - b);
+        let totalTbf = 0;
+        for (let i = 1; i < g.issues.length; i++) {
+            totalTbf += (g.issues[i] - g.issues[i-1]);
+        }
+        const avgTbfHours = parseFloat((totalTbf / (g.issues.length - 1) / (1000 * 60 * 60)).toFixed(1));
+        return { city: g.city, summary: g.summary, count: g.issues.length, avgTbfHours };
+    })
+    .sort((a, b) => b.count - a.count);
+
+const topRecurring = recurringResults.slice(0, 5);
+
 // 4. Formata os Tempos Diários de SLA para Linhas
 const sortedDays = Object.keys(aggregation.dailySLA).sort();
 const dailyLabels = [];
@@ -356,6 +392,34 @@ const htmlTemplate = `<!DOCTYPE html>
             </div>
         </div>
 
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Recorrência e TBF -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-lg mb-4 text-gray-700 text-indigo-600 flex items-center gap-2">🔄 Top 5 Falhas Recorrentes (Estabilidade)</h3>
+                <ul class="space-y-3">
+                    ${topRecurring.length > 0 ? topRecurring.map((r, i) => `
+                        <li class="border-b pb-2">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-sm">${i+1}. ${r.city}</span>
+                                <span class="text-xs bg-indigo-100 text-indigo-700 px-2 rounded-full font-bold">${r.count}x</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs text-gray-500">
+                                <span class="truncate max-w-[200px]">${r.summary}</span>
+                                <span>TBF Médio: <b class="text-indigo-600">${r.avgTbfHours}h</b></span>
+                            </div>
+                        </li>
+                    `).join('') : '<li class="text-sm text-gray-400 italic">Sem recorrência significativa detectada.</li>'}
+                </ul>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+                <h3 class="font-bold text-lg mb-4 text-gray-700">Frequência de Falhas (TBF em Horas)</h3>
+                <div class="relative w-full h-[250px] flex-1">
+                    <canvas id="tbfChart"></canvas>
+                </div>
+            </div>
+        </div>
+
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
              <h3 class="font-bold text-lg mb-2 text-gray-700">Análise de Ciclo de Vida (MTTR Completo)</h3>
              <p class="text-sm text-gray-500 mb-4">Quebra das pontas operacionais: Esperando o cliente ou 3º (Wait), Triando (Response) e Solucionando ativamente (Repair).</p>
@@ -411,6 +475,8 @@ const htmlTemplate = `<!DOCTYPE html>
         const dailyLabels = ${JSON.stringify(dailyLabels)};
         const dailyFrAvg = ${JSON.stringify(dailyFrAvg)};
         const dailyResAvg = ${JSON.stringify(dailyResAvg)};
+        const tbfLabels = ${JSON.stringify(topRecurring.map(r => r.city))};
+        const tbfData = ${JSON.stringify(topRecurring.map(r => r.avgTbfHours))};
 
         // Volume Bar Horizontal
         new Chart(document.getElementById('volumeAnalyticChart'), {
@@ -474,9 +540,28 @@ const htmlTemplate = `<!DOCTYPE html>
             data: { labels: dailyLabels, datasets: [{ label: 'Resolução (Média Horas)', data: dailyResAvg, borderColor: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, datalabels: { display: false } }, scales: { y: { beginAtZero: true, title: { display: true, text: 'Horas' } } } }
         });
+
+        // TBF Chart (Horizontal Bar)
+        new Chart(document.getElementById('tbfChart'), {
+            type: 'bar',
+            data: {
+                labels: tbfLabels,
+                datasets: [{
+                    label: 'TBF (Horas)', data: tbfData,
+                    backgroundColor: '#6366f1', borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, datalabels: { align: 'right', anchor: 'end', color: '#1f2937', font: { weight: 'bold' } } },
+                scales: { x: { beginAtZero: true, title: { display: true, text: 'Horas' } }, y: { grid: { display: false } } }
+            }
+        });
     </script>
 </body>
 </html>`;
+fs.writeFileSync(outputHtml, htmlTemplate, 'utf8');
+console.log(`✅ Dashboard HTML gerado: ${outputHtml}`);
 // Retornar dados completos via stdout para o servidor ler (Sem salvar arquivos)
 const enrichedOutput = {
     ...aggregation,
@@ -488,6 +573,7 @@ const enrichedOutput = {
     dailyLabels,
     dailyFrAvg,
     dailyResAvg,
+    topRecurring,
     timeline: {
         incident: incidentTimeline,
         change: changeTimeline,

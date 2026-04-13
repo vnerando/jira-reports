@@ -349,6 +349,38 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
                     </div>
                   </div>
                 )}
+
+                {/* Recorrência e Estabilidade e TBF */}
+                <div className="lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">🔄 Top 5 Falhas Recorrentes</h3>
+                    <div className="space-y-3 mt-4">
+                      {data.topRecurring?.length > 0 ? data.topRecurring.map((r, i) => (
+                        <div key={i} className="border-b pb-2 flex justify-between items-center text-sm">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-800">{i+1}. {r.city}</span>
+                            <span className="text-xs text-gray-500 truncate max-w-[200px]">{r.summary}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full font-bold">{r.count}x</span>
+                            <div className="text-[10px] text-gray-400 mt-1">TBF: <b>{r.avgTbfHours}h</b></div>
+                          </div>
+                        </div>
+                      )) : <p className="text-sm text-gray-400 italic">Sem recorrência significativa.</p>}
+                    </div>
+                  </div>
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="font-bold text-gray-700 mb-3">Estabilidade (Tempo Entre Falhas)</h3>
+                    <div className="h-56">
+                      {data.topRecurring?.length > 0 ? (
+                        <Bar 
+                          data={barData(data.topRecurring.map(r => [r.city, r.avgTbfHours]), 'TBF (h)', true)} 
+                          options={barOpts(true)} 
+                        />
+                      ) : <p className="text-sm text-gray-400">Sem dados.</p>}
+                    </div>
+                  </div>
+                </div>
               </>
             ) : (
               <>
@@ -479,6 +511,38 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
                     </div>
                   </div>
                 )}
+
+                {/* Recorrência e Estabilidade (Analítica) */}
+                <div className="lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">🔄 Top Falhas (Estabilidade)</h3>
+                    <div className="space-y-3 mt-2">
+                       {data.topRecurring?.length > 0 ? data.topRecurring.map((r, i) => (
+                        <div key={i} className="flex justify-between items-center text-sm border-b pb-2">
+                          <div>
+                             <p className="font-bold text-gray-800">{r.city}</p>
+                             <p className="text-xs text-gray-400 truncate max-w-[180px]">{r.summary}</p>
+                          </div>
+                          <div className="text-right">
+                             <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">{r.count}x</span>
+                             <p className="text-[10px] text-gray-500 mt-0.5">TBF Médio: <b className="text-indigo-600">{r.avgTbfHours}h</b></p>
+                          </div>
+                        </div>
+                       )) : <p className="text-sm text-gray-400 italic">Nenhuma recorrência detectada.</p>}
+                    </div>
+                  </div>
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="font-bold text-gray-700 mb-3">Frequência de Falhas (TBF Horas)</h3>
+                    <div className="h-64">
+                       {data.topRecurring?.length > 0 ? (
+                         <Bar 
+                           data={barData(data.topRecurring.map(r => [r.city, r.avgTbfHours]), 'TBF Médio (h)', true)} 
+                           options={barOpts(true)} 
+                         />
+                       ) : <p className="text-sm text-gray-400">Sem dados.</p>}
+                    </div>
+                  </div>
+                </div>
               </>
             )}
           </div>
