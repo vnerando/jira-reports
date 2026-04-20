@@ -7,36 +7,36 @@ const HistoryView = ({ months = [] }) => {
   return (
     <div className="flex flex-col h-full">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
           📚 Histórico de Relatórios
         </h2>
-        <p className="text-gray-500 text-sm mt-1">
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
           Lista de todos os relatórios analíticos gerados no workspace.
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden transition-colors duration-200">
         {months.length === 0 ? (
           <div className="p-12 text-center text-gray-400">
             <div className="text-4xl mb-2">📁</div>
             <div>Nenhum relatório histórico encontrado.</div>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-slate-700">
             {months.map((m) => (
               <div 
                 key={m.label} 
-                className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
+                className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 text-lg">
+                  <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-slate-700 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-lg">
                     📊
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-800">
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200">
                       {m.label.replace(/_/g, ' ')}
                     </h3>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
                       Período: {m.startDate} até {m.endDate}
                     </p>
                   </div>
@@ -44,7 +44,7 @@ const HistoryView = ({ months = [] }) => {
                 
                 <button
                   onClick={() => navigate(`/analitico/${m.label}`)}
-                  className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+                  className="bg-indigo-50 dark:bg-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/40 text-indigo-600 dark:text-indigo-300 font-semibold text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
                 >
                   Visualizar
                 </button>

@@ -1,6 +1,6 @@
-# Relatório Executivo - SLA Jira (Fevereiro de 2026)
+# Resumo do Mês - Jira Service Management (Março de 2026)
 
-*Este relatório consolida o volume, tempo médio e taxas de violação de SLA por tipo de solicitação.*
+*Este relatório consolida a operação do JSM: Volume, Ciclo de Vida do Chamado (MTTR), SLA de Incidentes e Eficiência.*
 
 ---
 
@@ -19,13 +19,13 @@
 
 ---
 
-## 🟢 [SYSTEM CHANGE] - Volume: 61 tickets
-**👨‍💻 Top Responsáveis:** Infraestrutura (47), Não Atribuído (14)
+## 🟢 [SYSTEM CHANGE] - Volume: 62 tickets
+**👨‍💻 Top Responsáveis:** Infraestrutura (48), Não Atribuído (14)
 
 ### ⏱️ SLA: Tempo de Primeira Resposta
-- **Tempo Médio:** 6h 14m
-- **Dentro da Meta:** 1 (33.3%)
-- **Violados:** 2 (66.7%)
+- **Tempo Médio:** 17h 54m
+- **Dentro da Meta:** 1 (25.0%)
+- **Violados:** 3 (75.0%)
 
 ### 🏁 SLA: Tempo de Resolução
 - *Métrica não aplicável a este tipo no período.*
@@ -62,13 +62,13 @@
 
 ---
 
-## 🟢 [SYSTEM SERVICE REQUEST] - Volume: 9 tickets
-**👨‍💻 Top Responsáveis:** Não Atribuído (8), Infraestrutura (1)
+## 🟢 [SYSTEM SERVICE REQUEST] - Volume: 8 tickets
+**👨‍💻 Top Responsáveis:** Não Atribuído (6), Infraestrutura (2)
 
 ### ⏱️ SLA: Tempo de Primeira Resposta
-- **Tempo Médio:** 19h 25m
-- **Dentro da Meta:** 5 (71.4%)
-- **Violados:** 2 (28.6%)
+- **Tempo Médio:** 13h 50m
+- **Dentro da Meta:** 5 (83.3%)
+- **Violados:** 1 (16.7%)
 
 ### 🏁 SLA: Tempo de Resolução
 - *Métrica não aplicável a este tipo no período.*

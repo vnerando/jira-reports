@@ -99,15 +99,15 @@ const ReportGenerator = ({ onGenerateSuccess }) => {
     await callGenerate(startDate, endDate, label);
   };
 
-  const btnClass = (type) => {
-    const isActive = activePreset === type;
-    if (isActive) return 'text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors cursor-pointer bg-indigo-600 text-white border-indigo-600 shadow-sm';
-    return 'text-xs font-medium px-3 py-1.5 rounded-full border transition-colors cursor-pointer bg-slate-100 text-slate-600 border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200';
-  };
+    const btnClass = (type) => {
+      const isActive = activePreset === type;
+      if (isActive) return 'text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors cursor-pointer bg-indigo-600 text-white border-indigo-600 shadow-sm';
+      return 'text-xs font-medium px-3 py-1.5 rounded-full border transition-colors cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-700';
+    };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-4 transition-all duration-300">
-      <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 mb-4 transition-all duration-300">
+      <h3 className="font-bold text-lg text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
         ⚡ Gerar Novo Relatório Sob Demanda
       </h3>
 
@@ -119,7 +119,7 @@ const ReportGenerator = ({ onGenerateSuccess }) => {
           </button>
         ))}
         {activePreset === 'custom' && (
-          <span className="text-xs font-semibold px-3 py-1.5 rounded-full border bg-amber-50 text-amber-600 border-amber-200">
+          <span className="text-xs font-semibold px-3 py-1.5 rounded-full border bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 border-amber-200 dark:border-amber-700">
             🎯 Personalizado
           </span>
         )}
@@ -127,27 +127,27 @@ const ReportGenerator = ({ onGenerateSuccess }) => {
 
       <form onSubmit={handleGenerate} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Data Início</label>
+          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase">Data Início</label>
           <input
             type="date" value={startDate}
             onChange={handleManualChange(setStartDate)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Data Fim</label>
+          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase">Data Fim</label>
           <input
             type="date" value={endDate}
             onChange={handleManualChange(setEndDate)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Nome do Relatório</label>
+          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase">Nome do Relatório</label>
           <input
             type="text" placeholder="Ex: Q1_2026" value={label}
             onChange={handleManualChange(setLabel)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
         <button
@@ -159,7 +159,7 @@ const ReportGenerator = ({ onGenerateSuccess }) => {
       </form>
 
       {message && (
-        <div className={`mt-4 p-3 rounded-lg text-sm font-medium ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+        <div className={`mt-4 p-3 rounded-lg text-sm font-medium ${message.type === 'success' ? 'bg-green-50 dark:bg-emerald-900/30 text-green-700 dark:text-emerald-400 border border-green-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'}`}>
           {message.text}
         </div>
       )}

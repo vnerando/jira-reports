@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import ReportGenerator from '../components/ReportGenerator';
 import EmailModal from '../components/EmailModal';
+import TicketModal from '../components/TicketModal';
 import { Chart as ChartJS, registerables } from 'chart.js';
 import { Bar, Pie, Line } from 'react-chartjs-2';
 
@@ -9,14 +10,24 @@ ChartJS.register(...registerables);
 
 const COLORS = ['#6366f1','#a855f7','#ec4899','#f43f5e','#f97316','#eab308','#22c55e','#0ea5e9','#64748b'];
 
-const kpiCard = (title, value, color = 'text-indigo-600') => (
-  <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-1">
-    <p className="text-xs text-gray-400 uppercase font-semibold">{title}</p>
-    <div className={`text-4xl font-black ${color}`}>{value}</div>
+const kpiCard = (title, value, color = 'text-indigo-600', deltaObj = null) => (
+  <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col gap-1 relative overflow-hidden">
+    <p className="text-xs text-gray-400 dark:text-gray-400 uppercase font-semibold relative z-10">{title}</p>
+    <div className={`text-4xl font-black ${color} relative z-10`}>{value}</div>
+    {deltaObj && deltaObj.val !== 0 && (
+      <div 
+        title="Variação em relação ao período equivalente anterior"
+        className={`absolute bottom-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 z-10 shadow-sm
+        ${deltaObj.isGood ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50' 
+                          : 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/50'}`}
+      >
+        {deltaObj.val > 0 ? '▲' : '▼'} {Math.abs(deltaObj.val).toFixed(1)}%
+      </div>
+    )}
   </div>
 );
 
-const AnalyticView = ({ months = [], onGenerateSuccess }) => {
+const AnalyticView = ({ months = [], onGenerateSuccess, isDark }) => {
   const { monthLabel } = useParams();
   const [data,           setData]          = useState(null);
   const [loading,        setLoading]       = useState(false);
@@ -25,6 +36,13 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
   const [viewMode,       setViewMode]      = useState('executive');
   const [fromCache,      setFromCache]     = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [drillModal,     setDrillModal]    = useState({ open: false, title: '', tickets: [] });
+
+  const openDrill = (title, drillDownCategory, key, drillDownData) => {
+    const tickets = drillDownData?.[drillDownCategory]?.[key] || [];
+    setDrillModal({ open: true, title: `${title}: ${String(key).replace('[System] ', '')}`, tickets });
+  };
+  const closeDrill = () => setDrillModal(d => ({ ...d, open: false }));
 
   const downloadCSV = () => {
     if (!csvLabel) return;
@@ -164,9 +182,9 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
   };
 
   const getTrafficLight = (pct) => {
-    if (pct >= 85) return { color: 'text-green-600 bg-green-50 border-green-200', text: '🟢 ÓTIMO', score: 'Dentro do esperado' };
+    if (pct >= 85) return { color: 'text-green-600 bg-green-50 dark:bg-emerald-900/30 border-green-200', text: '🟢 ÓTIMO', score: 'Dentro do esperado' };
     if (pct >= 70) return { color: 'text-amber-600 bg-amber-50 border-amber-200', text: '🟡 ATENÇÃO', score: 'Abaixo da meta' };
-    return { color: 'text-red-600 bg-red-50 border-red-200', text: '🔴 CRÍTICO', score: 'Requer intervenção' };
+    return { color: 'text-red-600 bg-red-50 dark:bg-red-900/30 border-red-200', text: '🔴 CRÍTICO', score: 'Requer intervenção' };
   };
 
   const isPdfMode = window.location.search.includes('pdfMode=true');
@@ -176,26 +194,26 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
               {viewMode === 'executive' ? '👔 Visão Executiva' : '🔬 Visão Analítica'}
             </h2>
-            <p className="text-gray-500 text-sm mt-0.5">
+            <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm mt-0.5">
               {monthLabel ? `Exibindo: ${monthLabel.replace(/_/g,' ')}` : 'Gere um novo relatório ou selecione um histórico.'}
             </p>
           </div>
           
           {/* Toggle de Visão (Esconde no PDF) */}
           {data && !isPdfMode && (
-            <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200 ml-2">
+            <div className="flex bg-gray-100 dark:bg-slate-700 p-0.5 rounded-lg border border-gray-200 dark:border-slate-700 ml-2">
               <button 
                 onClick={() => setViewMode('executive')}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-md transition-all cursor-pointer ${viewMode === 'executive' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`text-xs font-semibold px-3 py-1.5 rounded-md transition-all cursor-pointer ${viewMode === 'executive' ? 'bg-white dark:bg-slate-800 transition-colors duration-200 text-indigo-600 shadow-sm' : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'}`}
               >
                 👔 Executivo
               </button>
               <button 
                 onClick={() => setViewMode('analytic')}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-md transition-all cursor-pointer ${viewMode === 'analytic' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`text-xs font-semibold px-3 py-1.5 rounded-md transition-all cursor-pointer ${viewMode === 'analytic' ? 'bg-white dark:bg-slate-800 transition-colors duration-200 text-indigo-600 shadow-sm' : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200'}`}
               >
                 🔬 Analítico
               </button>
@@ -230,15 +248,15 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
                 🔄 Atualizar
               </button>
             )}
-            <button onClick={downloadCSV} className="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-sm px-4 py-2 rounded-lg border border-emerald-200 transition-colors cursor-pointer mt-1">
+            <button onClick={downloadCSV} className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 text-emerald-700 font-semibold text-sm px-4 py-2 rounded-lg border border-emerald-200 transition-colors cursor-pointer mt-1">
               ⬇️ Baixar CSV
             </button>
-            <button onClick={downloadPDF} className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-sm px-4 py-2 rounded-lg border border-red-200 transition-colors cursor-pointer mt-1">
+            <button onClick={downloadPDF} className="flex items-center gap-2 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 text-red-600 font-semibold text-sm px-4 py-2 rounded-lg border border-red-200 transition-colors cursor-pointer mt-1">
               📄 Gerar PDF
             </button>
             <button
               onClick={() => setShowEmailModal(true)}
-              className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold text-sm px-4 py-2 rounded-lg border border-indigo-200 transition-colors cursor-pointer mt-1"
+              className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/40 hover:bg-indigo-100 text-indigo-600 font-semibold text-sm px-4 py-2 rounded-lg border border-indigo-200 transition-colors cursor-pointer mt-1"
             >
               ✉️ Enviar por E-mail
             </button>
@@ -255,18 +273,25 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
         csvLabel={csvLabel}
       />
 
+      <TicketModal
+        isOpen={drillModal.open}
+        onClose={closeDrill}
+        title={drillModal.title}
+        tickets={drillModal.tickets}
+      />
+
       {loading && (
-        <div className="w-full h-56 flex flex-col items-center justify-center text-gray-500 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="w-full h-56 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 dark:text-gray-500 bg-white dark:bg-slate-800 transition-colors duration-200 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent mb-3"></div>
           <div className="font-medium">Calculando relatório via Jira...</div>
-          <p className="text-xs text-gray-400 mt-1">Isso pode levar alguns segundos.</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Isso pode levar alguns segundos.</p>
         </div>
       )}
 
-      {error && <div className="p-10 text-center text-red-500 bg-white rounded-xl shadow-sm border border-red-100">⚠️ {error}</div>}
+      {error && <div className="p-10 text-center text-red-500 bg-white dark:bg-slate-800 transition-colors duration-200 rounded-xl shadow-sm border border-red-100">⚠️ {error}</div>}
 
       {!loading && !error && !data && (
-        <div className="w-full h-56 flex flex-col items-center justify-center text-gray-400 bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="w-full h-56 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 bg-white dark:bg-slate-800 transition-colors duration-200 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
           <div className="text-4xl mb-2">📄</div>
           <div className="font-medium">Nenhum dado carregado</div>
           <p className="text-xs mt-1">Preencha os campos acima ou selecione um histórico lateral.</p>
@@ -287,10 +312,31 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
 
             {/* ── KPIs ── */}
             <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {kpiCard('Total de Chamados', data.totalIssues || 0, 'text-indigo-600')}
-              {kpiCard('Resolvidos', data.resolvedIssues || 0, 'text-emerald-600')}
-              {kpiCard('SLA 1ª Resp. Cumprido', pctLabel(slaSummary.frMet||0, slaSummary.frBreached||0), 'text-sky-600')}
-              {kpiCard('SLA Resolução Cumprido', pctLabel(slaSummary.resMet||0, slaSummary.resBreached||0), 'text-violet-600')}
+              {(() => {
+                const b = data.baselineDelta;
+                const dTotal = b && b.total > 0 ? ((data.totalIssues / b.total) - 1) * 100 : 0;
+                
+                const curResolvedPct = data.totalIssues > 0 ? (data.resolvedIssues / data.totalIssues) : 0;
+                const bResolvedPct = b ? b.resolved : 0;
+                const dResolved = b ? (curResolvedPct - bResolvedPct) * 100 : 0;
+
+                const curFrPct = (slaSummary.frMet + slaSummary.frBreached) > 0 ? (slaSummary.frMet / (slaSummary.frMet + slaSummary.frBreached)) : 0;
+                const bFrPct = b && b.frTotal > 0 ? ((b.frTotal - b.frBreached) / b.frTotal) : 0;
+                const dFr = b ? (curFrPct - bFrPct) * 100 : 0;
+
+                const curResPct = (slaSummary.resMet + slaSummary.resBreached) > 0 ? (slaSummary.resMet / (slaSummary.resMet + slaSummary.resBreached)) : 0;
+                const bResPct = b && b.resTotal > 0 ? ((b.resTotal - b.resBreached) / b.resTotal) : 0;
+                const dRes = b ? (curResPct - bResPct) * 100 : 0;
+
+                return (
+                  <>
+                  {kpiCard('Total de Chamados', data.totalIssues || 0, 'text-indigo-600', b ? {val: dTotal, isGood: dTotal <= 0} : null)}
+                  {kpiCard('Resolvidos', data.resolvedIssues || 0, 'text-emerald-600', b ? {val: dResolved, isGood: dResolved >= 0} : null)}
+                  {kpiCard('SLA 1ª Resp. Cumprido', pctLabel(slaSummary.frMet||0, slaSummary.frBreached||0), 'text-sky-600', b ? {val: dFr, isGood: dFr >= 0} : null)}
+                  {kpiCard('SLA Resolução Cumprido', pctLabel(slaSummary.resMet||0, slaSummary.resBreached||0), 'text-violet-600', b ? {val: dRes, isGood: dRes >= 0} : null)}
+                  </>
+                );
+              })()}
             </div>
 
             {viewMode === 'executive' ? (
@@ -310,12 +356,12 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
                         <p className="text-sm mt-1">{light.score} (SLA Médio: {Math.round(avgPct)}%)</p>
                       </div>
                       <div className="flex gap-4">
-                        <div className="text-center bg-white bg-opacity-60 px-4 py-2 rounded-lg backdrop-blur-sm border">
-                          <p className="text-xs text-gray-500">1ª Resp.</p>
+                        <div className="text-center bg-white dark:bg-slate-800 transition-colors duration-200 bg-opacity-60 px-4 py-2 rounded-lg backdrop-blur-sm border">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">1ª Resp.</p>
                           <p className={`text-xl font-bold ${frPct >= 85 ? 'text-green-600' : frPct >= 70 ? 'text-amber-600' : 'text-red-600'}`}>{Math.round(frPct)}%</p>
                         </div>
-                        <div className="text-center bg-white bg-opacity-60 px-4 py-2 rounded-lg backdrop-blur-sm border">
-                          <p className="text-xs text-gray-500">Resolução</p>
+                        <div className="text-center bg-white dark:bg-slate-800 transition-colors duration-200 bg-opacity-60 px-4 py-2 rounded-lg backdrop-blur-sm border">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">Resolução</p>
                           <p className={`text-xl font-bold ${resPct >= 85 ? 'text-green-600' : resPct >= 70 ? 'text-amber-600' : 'text-red-600'}`}>{Math.round(resPct)}%</p>
                         </div>
                       </div>
@@ -324,17 +370,17 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
                 })()}
 
                 {/* Gráfico Simplificado de Volume */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-gray-700 mb-3">Volume por Categoria</h3>
+                <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                  <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">Volume por Categoria</h3>
                   <div className="h-56">
-                    {typeEntries.length > 0 ? <Bar data={barData(typeEntries, 'Chamados')} options={barOpts(true)} /> : <p className="text-sm text-gray-400">Sem dados.</p>}
+                    {typeEntries.length > 0 ? <Bar data={barData(typeEntries, 'Chamados')} options={barOpts(true)} /> : <p className="text-sm text-gray-400 dark:text-gray-500">Sem dados.</p>}
                   </div>
                 </div>
 
                 {/* MTTR Simplificado */}
                 {hasTimeline && (
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-700 mb-3">MTTR — Ciclo de Vida (h)</h3>
+                  <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                    <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">MTTR — Ciclo de Vida (h)</h3>
                     <div className="h-56">
                       <Bar
                         data={{
@@ -352,32 +398,32 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
 
                 {/* Recorrência e Estabilidade e TBF */}
                 <div className="lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">🔄 Top 5 Falhas Recorrentes</h3>
+                  <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                    <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">🔄 Top 5 Falhas Recorrentes</h3>
                     <div className="space-y-3 mt-4">
                       {data.topRecurring?.length > 0 ? data.topRecurring.map((r, i) => (
                         <div key={i} className="border-b pb-2 flex justify-between items-center text-sm">
                           <div className="flex flex-col">
-                            <span className="font-bold text-gray-800">{i+1}. {r.city}</span>
-                            <span className="text-xs text-gray-500 truncate max-w-[200px]">{r.summary}</span>
+                            <span className="font-bold text-gray-800 dark:text-gray-100">{i+1}. {r.city}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 truncate max-w-[200px]">{r.summary}</span>
                           </div>
                           <div className="text-right">
-                            <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full font-bold">{r.count}x</span>
-                            <div className="text-[10px] text-gray-400 mt-1">TBF: <b>{r.avgTbfHours}h</b></div>
+                            <span className="text-xs bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 px-2 py-1 rounded-full font-bold">{r.count}x</span>
+                            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">TBF: <b>{r.avgTbfHours}h</b></div>
                           </div>
                         </div>
-                      )) : <p className="text-sm text-gray-400 italic">Sem recorrência significativa.</p>}
+                      )) : <p className="text-sm text-gray-400 dark:text-gray-500 italic">Sem recorrência significativa.</p>}
                     </div>
                   </div>
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-700 mb-3">Estabilidade (Tempo Entre Falhas)</h3>
+                  <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                    <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">Estabilidade (Tempo Entre Falhas)</h3>
                     <div className="h-56">
                       {data.topRecurring?.length > 0 ? (
                         <Bar 
                           data={barData(data.topRecurring.map(r => [r.city, r.avgTbfHours]), 'TBF (h)', true)} 
                           options={barOpts(true)} 
                         />
-                      ) : <p className="text-sm text-gray-400">Sem dados.</p>}
+                      ) : <p className="text-sm text-gray-400 dark:text-gray-500">Sem dados.</p>}
                     </div>
                   </div>
                 </div>
@@ -386,25 +432,25 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
               <>
                 {/* ── VISÃO ANALÍTICA (O que já tínhamos) ── */}
                 {/* ── Volume por Categoria ── */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-gray-700 mb-3">Volume por Categoria</h3>
+                <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                  <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">Volume por Categoria</h3>
                   <div className="h-52">
-                    {typeEntries.length > 0 ? <Bar data={barData(typeEntries, 'Chamados')} options={barOpts(true)} /> : <p className="text-sm text-gray-400">Sem dados.</p>}
+                    {typeEntries.length > 0 ? <Bar data={barData(typeEntries, 'Chamados')} options={barOpts(true)} /> : <p className="text-sm text-gray-400 dark:text-gray-500">Sem dados.</p>}
                   </div>
                 </div>
 
                 {/* ── SLA Detalhado ── */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-gray-700 mb-4">Resumo de SLA</h3>
+                <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                  <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-4">Resumo de SLA</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      ['1ª Resp. OK', slaSummary.frMet||0, 'bg-green-50 text-green-600'],
-                      ['1ª Resp. Violada', slaSummary.frBreached||0, 'bg-red-50 text-red-500'],
-                      ['Resolução OK', slaSummary.resMet||0, 'bg-green-50 text-green-600'],
-                      ['Resolução Violada', slaSummary.resBreached||0, 'bg-red-50 text-red-500'],
+                      ['1ª Resp. OK', slaSummary.frMet||0, 'bg-green-50 dark:bg-emerald-900/30 text-green-600'],
+                      ['1ª Resp. Violada', slaSummary.frBreached||0, 'bg-red-50 dark:bg-red-900/30 text-red-500'],
+                      ['Resolução OK', slaSummary.resMet||0, 'bg-green-50 dark:bg-emerald-900/30 text-green-600'],
+                      ['Resolução Violada', slaSummary.resBreached||0, 'bg-red-50 dark:bg-red-900/30 text-red-500'],
                     ].map(([label, val, cls], i) => (
                       <div key={i} className={`${cls} rounded-xl p-3 text-center`}>
-                        <p className="text-xs text-gray-500 mb-1">{label}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">{label}</p>
                         <p className="text-2xl font-black">{val}</p>
                       </div>
                     ))}
@@ -415,40 +461,70 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
 
 
             {viewMode === 'analytic' && (
-              <div className="lg:col-span-2 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-gray-700 mb-3">Top 5 Causas / Motivadores</h3>
+              <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                  <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">Top 5 Causas / Motivadores <span className="text-[10px] font-normal text-gray-400 ml-1">(clique para detalhar)</span></h3>
                   <div className="space-y-2.5">
-                    {causeEntries.length > 0 ? causeEntries.map(([lbl, cnt], i) => (
-                      <div key={i} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 truncate mr-2 flex-1">• {lbl}</span>
-                        <span className="font-bold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full text-xs">{cnt}</span>
-                      </div>
-                    )) : <p className="text-sm text-gray-400">Sem incidentes/problemas registrados.</p>}
+                    {causeEntries.length > 0 ? causeEntries.map(([lbl, cnt], i) => {
+                      const cat = data.topIncidents?.some(([k]) => k === lbl) ? 'rootCausesIncident' : 'rootCausesProblem';
+                      return (
+                        <div key={i}
+                          className="flex items-center justify-between text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg px-2 -mx-2 py-0.5 transition-colors group"
+                          onClick={() => openDrill('Causa', cat, lbl, data.drillDown)}
+                        >
+                          <span className="text-gray-600 dark:text-gray-300 truncate mr-2 flex-1 group-hover:text-indigo-700 dark:group-hover:text-indigo-300">• {lbl}</span>
+                          <span className="font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/40 px-2.5 py-0.5 rounded-full text-xs">{cnt}</span>
+                        </div>
+                      );
+                    }) : <p className="text-sm text-gray-400 dark:text-gray-500">Sem incidentes/problemas registrados.</p>}
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-gray-700 mb-3">Mapeamento Geográfico (Top 5)</h3>
+                <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                  <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">Mapeamento Geográfico (Top 5) <span className="text-[10px] font-normal text-gray-400 ml-1">(clique para detalhar)</span></h3>
                   <div className="space-y-2.5">
                     {cityEntries.length > 0 ? cityEntries.map(([city, cnt], i) => (
-                      <div key={i} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 truncate mr-2 flex-1">📍 {city}</span>
-                        <span className="font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full text-xs">{cnt}</span>
+                      <div key={i}
+                        className="flex items-center justify-between text-sm cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg px-2 -mx-2 py-0.5 transition-colors group"
+                        onClick={() => openDrill('Cidade', 'byCity', city, data.drillDown)}
+                      >
+                        <span className="text-gray-600 dark:text-gray-300 truncate mr-2 flex-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-300">📍 {city}</span>
+                        <span className="font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-0.5 rounded-full text-xs">{cnt}</span>
                       </div>
-                    )) : <p className="text-sm text-gray-400">Sem dados geográficos.</p>}
+                    )) : <p className="text-sm text-gray-400 dark:text-gray-500">Sem dados geográficos.</p>}
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-gray-700 mb-3">Top 5 Ofensores de SLA</h3>
+                <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                  <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">Top 5 Ofensores de SLA <span className="text-[10px] font-normal text-gray-400 ml-1">(clique para detalhar)</span></h3>
                   <div className="space-y-2.5">
                     {offenderEntries.length > 0 ? offenderEntries.map(([lbl, cnt], i) => (
-                      <div key={i} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 truncate mr-2 flex-1">⚠️ {lbl}</span>
-                        <span className="font-bold text-red-500 bg-red-50 px-2.5 py-0.5 rounded-full text-xs">{cnt}</span>
+                      <div key={i}
+                        className="flex items-center justify-between text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg px-2 -mx-2 py-0.5 transition-colors group"
+                        onClick={() => openDrill('Ofensor de SLA', 'slaOffenders', lbl, data.drillDown)}
+                      >
+                        <span className="text-gray-600 dark:text-gray-300 truncate mr-2 flex-1 group-hover:text-red-600 dark:group-hover:text-red-400">⚠️ {lbl}</span>
+                        <span className="font-bold text-red-500 bg-red-50 dark:bg-red-900/30 px-2.5 py-0.5 rounded-full text-xs">{cnt}</span>
                       </div>
-                    )) : <p className="text-sm text-gray-400">Nenhum SLA violado.</p>}
+                    )) : <p className="text-sm text-gray-400 dark:text-gray-500">Nenhum SLA violado.</p>}
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                  <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">Chamados Cancelados <span className="text-[10px] font-normal text-gray-400 ml-1">(clique para detalhar)</span></h3>
+                  <div className="space-y-2.5">
+                    {data.cancelledReasons && Object.keys(data.cancelledReasons).length > 0 ? Object.entries(data.cancelledReasons).map(([reason, cnt], i) => (
+                      <div key={i}
+                        className="flex items-center justify-between text-sm cursor-pointer hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg px-2 -mx-2 py-0.5 transition-colors group"
+                        onClick={() => {
+                          const items = data.drillDown?.cancelledReasons?.[reason] || [];
+                          setDrillModal({ open: true, title: `Cancelados: ${reason}`, tickets: items });
+                        }}
+                      >
+                        <span className="text-gray-600 dark:text-gray-300 truncate mr-2 flex-1 group-hover:text-orange-700 dark:group-hover:text-orange-400">🚫 {reason}</span>
+                        <span className="font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-700 px-2.5 py-0.5 rounded-full text-xs">{cnt}</span>
+                      </div>
+                    )) : <p className="text-sm text-gray-400 dark:text-gray-500 italic">Nenhum cancelamento encontrado.</p>}
                   </div>
                 </div>
               </div>
@@ -459,16 +535,16 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
                 {/* ── Tempo Médio de Resolução + Top Criadores (row) ── */}
                 <div className="lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {Object.keys(avgResolutionHoursByType).length > 0 ? (
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                      <h3 className="font-bold text-gray-700 mb-3">Tempo Médio de Resolução (h)</h3>
+                    <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                      <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">Tempo Médio de Resolução (h)</h3>
                       <div className="h-52">
                         <Bar data={barData(Object.entries(avgResolutionHoursByType), 'Horas')} options={barOpts(true)} />
                       </div>
                     </div>
                   ) : <div />}
                   {creatorEntries.length > 0 ? (
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                      <h3 className="font-bold text-gray-700 mb-3">Top Criadores</h3>
+                    <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                      <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">Top Criadores</h3>
                       <div className="h-52">
                         <Pie data={pieData(creatorEntries)} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }} />
                       </div>
@@ -478,8 +554,8 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
 
                 {/* ── MTTR Ciclo de Vida (Timeline) ── HORIZONTAL */}
                 {hasTimeline && (
-                  <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-700 mb-3">MTTR — Ciclo de Vida por Tipo (h)</h3>
+                  <div className="lg:col-span-2 bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                    <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">MTTR — Ciclo de Vida por Tipo (h)</h3>
                     <div className="h-52">
                       <Bar
                         data={{
@@ -498,8 +574,8 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
 
                 {/* ── Tendência Diária de SLA ── */}
                 {dailyLabels.length > 0 && (
-                  <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-700 mb-3">Tendência Diária de SLA (Média por Dia)</h3>
+                  <div className="lg:col-span-2 bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                    <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">Tendência Diária de SLA (Média por Dia)</h3>
                     <div className="h-64">
                       <Line
                         data={lineData(dailyLabels, [
@@ -514,35 +590,37 @@ const AnalyticView = ({ months = [], onGenerateSuccess }) => {
 
                 {/* Recorrência e Estabilidade (Analítica) */}
                 <div className="lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">🔄 Top Falhas (Estabilidade)</h3>
+                  <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                    <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">🔄 Top Falhas (Estabilidade)</h3>
                     <div className="space-y-3 mt-2">
                        {data.topRecurring?.length > 0 ? data.topRecurring.map((r, i) => (
                         <div key={i} className="flex justify-between items-center text-sm border-b pb-2">
                           <div>
-                             <p className="font-bold text-gray-800">{r.city}</p>
-                             <p className="text-xs text-gray-400 truncate max-w-[180px]">{r.summary}</p>
+                             <p className="font-bold text-gray-800 dark:text-gray-100">{r.city}</p>
+                             <p className="text-xs text-gray-400 dark:text-gray-500 truncate max-w-[180px]">{r.summary}</p>
                           </div>
                           <div className="text-right">
                              <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">{r.count}x</span>
-                             <p className="text-[10px] text-gray-500 mt-0.5">TBF Médio: <b className="text-indigo-600">{r.avgTbfHours}h</b></p>
+                             <p className="text-[10px] text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">TBF Médio: <b className="text-indigo-600">{r.avgTbfHours}h</b></p>
                           </div>
                         </div>
-                       )) : <p className="text-sm text-gray-400 italic">Nenhuma recorrência detectada.</p>}
+                       )) : <p className="text-sm text-gray-400 dark:text-gray-500 italic">Nenhuma recorrência detectada.</p>}
                     </div>
                   </div>
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-700 mb-3">Frequência de Falhas (TBF Horas)</h3>
+                  <div className="bg-white dark:bg-slate-800 transition-colors duration-200 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                    <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3">Frequência de Falhas (TBF Horas)</h3>
                     <div className="h-64">
                        {data.topRecurring?.length > 0 ? (
                          <Bar 
                            data={barData(data.topRecurring.map(r => [r.city, r.avgTbfHours]), 'TBF Médio (h)', true)} 
                            options={barOpts(true)} 
                          />
-                       ) : <p className="text-sm text-gray-400">Sem dados.</p>}
+                       ) : <p className="text-sm text-gray-400 dark:text-gray-500">Sem dados.</p>}
                     </div>
                   </div>
                 </div>
+
+
               </>
             )}
           </div>

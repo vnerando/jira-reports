@@ -1,4 +1,4 @@
-# Resumo do Mês - Jira Service Management (Fevereiro de 2026)
+# Resumo do Mês - Jira Service Management (Março de 2026)
 
 *Este relatório consolida a operação do JSM: Volume, Ciclo de Vida do Chamado (MTTR), SLA de Incidentes e Eficiência.*
 

@@ -36,10 +36,10 @@
         new Chart(ctxVol, {
             type: 'bar',
             data: {
-                labels: ["Dezembro de 2025","Janeiro de 2026","Fevereiro de 2026"],
+                labels: ["Janeiro de 2026","Fevereiro de 2026","Março de 2026"],
                 datasets: [
-                    { label: 'Chamados Criados', data: [288,262,209], backgroundColor: '#FF5630', borderRadius: 6 },
-                    { label: 'Chamados Resolvidos', data: [272,250,203], backgroundColor: '#36B37E', borderRadius: 6 }
+                    { label: 'Chamados Criados', data: [262,209,237], backgroundColor: '#FF5630', borderRadius: 6 },
+                    { label: 'Chamados Resolvidos', data: [252,203,224], backgroundColor: '#36B37E', borderRadius: 6 }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
@@ -49,10 +49,10 @@
         new Chart(ctxSla, {
             type: 'line',
             data: {
-                labels: ["Dezembro de 2025","Janeiro de 2026","Fevereiro de 2026"],
+                labels: ["Janeiro de 2026","Fevereiro de 2026","Março de 2026"],
                 datasets: [
-                    { label: 'SLA 1ª Resposta Met %', data: [82.2,86.9,80], borderColor: '#0052CC', backgroundColor: '#0052CC', tension: 0.2, fill: false, borderWidth: 3 },
-                    { label: 'SLA Resolução Met %', data: [93.4,91.4,88.1], borderColor: '#00B8D9', backgroundColor: '#00B8D9', tension: 0.2, fill: false, borderWidth: 3 }
+                    { label: 'SLA 1ª Resposta Met %', data: [86.9,80,88.8], borderColor: '#0052CC', backgroundColor: '#0052CC', tension: 0.2, fill: false, borderWidth: 3 },
+                    { label: 'SLA Resolução Met %', data: [91.4,88.1,93.9], borderColor: '#00B8D9', backgroundColor: '#00B8D9', tension: 0.2, fill: false, borderWidth: 3 }
                 ]
             },
             options: { 
@@ -66,9 +66,9 @@
         new Chart(ctxFrTime, {
             type: 'line',
             data: {
-                labels: ["Dezembro de 2025","Janeiro de 2026","Fevereiro de 2026"],
+                labels: ["Janeiro de 2026","Fevereiro de 2026","Março de 2026"],
                 datasets: [
-                    { label: 'Tempo Médio 1ª Resposta (h)', data: [0.39,0.32,0.56], borderColor: '#FFAB00', backgroundColor: '#FFAB00', tension: 0.2, fill: false, borderWidth: 3 }
+                    { label: 'Tempo Médio 1ª Resposta (h)', data: [0.32,0.56,0.31], borderColor: '#FFAB00', backgroundColor: '#FFAB00', tension: 0.2, fill: false, borderWidth: 3 }
                 ]
             },
             options: { 
@@ -82,9 +82,9 @@
         new Chart(ctxResTime, {
             type: 'line',
             data: {
-                labels: ["Dezembro de 2025","Janeiro de 2026","Fevereiro de 2026"],
+                labels: ["Janeiro de 2026","Fevereiro de 2026","Março de 2026"],
                 datasets: [
-                    { label: 'Tempo Médio Resolução (h)', data: [4.13,6.62,4.9], borderColor: '#6554C0', backgroundColor: '#6554C0', tension: 0.2, fill: false, borderWidth: 3 }
+                    { label: 'Tempo Médio Resolução (h)', data: [6.62,4.9,3.2], borderColor: '#6554C0', backgroundColor: '#6554C0', tension: 0.2, fill: false, borderWidth: 3 }
                 ]
             },
             options: { 

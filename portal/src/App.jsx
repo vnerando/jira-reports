@@ -18,8 +18,27 @@ export const authHeaders = () => ({
 
 function App() {
   const [months, setMonths] = useState([]);
+  const [isDark, setIsDark] = useState(false);
 
-  const loadMonths = () => {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('noc_theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDark(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    if (!isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('noc_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('noc_theme', 'light');
+    }
+  };  const loadMonths = () => {
     const token = getToken();
     if (!token) return;
     fetch('/api/history', {
@@ -40,8 +59,8 @@ function App() {
         <main className="p-0 bg-white min-h-screen">
           <Routes>
             <Route path="/" element={<Navigate to="/analitico" replace />} />
-            <Route path="/analitico" element={<AnalyticView months={months} onGenerateSuccess={loadMonths} />} />
-            <Route path="/analitico/:monthLabel" element={<AnalyticView months={months} onGenerateSuccess={loadMonths} />} />
+            <Route path="/analitico" element={<AnalyticView months={months} onGenerateSuccess={loadMonths} isDark={isDark} />} />
+            <Route path="/analitico/:monthLabel" element={<AnalyticView months={months} onGenerateSuccess={loadMonths} isDark={isDark} />} />
           </Routes>
         </main>
       ) : (
@@ -52,16 +71,16 @@ function App() {
           {/* Rotas protegidas */}
           <Route path="/*" element={
             <ProtectedRoute>
-              <div className="flex h-screen bg-gray-50 font-sans text-gray-800">
+              <div className="flex h-screen bg-gray-50 dark:bg-slate-900 font-sans text-gray-800 dark:text-slate-200">
                 <Sidebar className="w-64 flex-none" months={months} />
                 <div className="flex flex-col flex-1 overflow-hidden">
-                  <TopBar />
-                  <main className="flex-1 overflow-y-auto p-4 bg-slate-50">
+                  <TopBar isDark={isDark} toggleTheme={toggleTheme} />
+                  <main className="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-slate-900">
                     <Routes>
                       <Route path="/" element={<Navigate to="/analitico" replace />} />
-                      <Route path="/analitico" element={<AnalyticView months={months} onGenerateSuccess={loadMonths} />} />
-                      <Route path="/analitico/:monthLabel" element={<AnalyticView months={months} onGenerateSuccess={loadMonths} />} />
-                      <Route path="/historico" element={<HistoryView months={months} />} />
+                      <Route path="/analitico" element={<AnalyticView months={months} onGenerateSuccess={loadMonths} isDark={isDark} />} />
+                      <Route path="/analitico/:monthLabel" element={<AnalyticView months={months} onGenerateSuccess={loadMonths} isDark={isDark} />} />
+                      <Route path="/historico" element={<HistoryView months={months} isDark={isDark} />} />
                     </Routes>
                   </main>
                 </div>

@@ -56,32 +56,33 @@ files.forEach(file => {
     }
 });
 
-// Ordenar cronologicamente
+// Ordenar cronologicamente e pegar apenas os últimos 3 meses
 dataLog.sort((a, b) => mapMonthToDate(a.mes) - mapMonthToDate(b.mes));
+const lastThreeMonths = dataLog.slice(-3);
 
-console.log(`Dados consolidados de ${dataLog.length} meses:`);
-dataLog.forEach(d => console.log(`- ${d.mes}: ${d.criados} criados / ${d.frTempo}h Resp.`));
+console.log(`Dados consolidados de ${lastThreeMonths.length} meses:`);
+lastThreeMonths.forEach(d => console.log(`- ${d.mes}: ${d.criados} criados / ${d.frTempo}h Resp.`));
 
 // Gerar CSV Comparativo (Wide Format)
 const canvaHeader = [];
 const canvaRow = [];
 
-dataLog.forEach((d, i) => {
+lastThreeMonths.forEach((d, i) => {
     const idx = i + 1;
     canvaHeader.push(`Mes_${idx}`, `Criados_${idx}`, `Resolvidos_${idx}`, `Tempo_Resp_${idx}`, `SLA_Resp_Pct_${idx}`);
     canvaRow.push(`"${d.mes}"`, d.criados, d.resolvidos, `"${d.frTempo.toFixed(2)}h"`, `"${d.frPct.toFixed(1)}%"`);
 });
 
 // Análise macro
-const lastIndex = dataLog.length - 1;
+const lastIndex = lastThreeMonths.length - 1;
 const firstIndex = 0;
-let analysis = `Comparativo do trimestre: `;
-if (dataLog.length > 1) {
-    const volDiff = dataLog[lastIndex].criados - dataLog[firstIndex].criados;
-    if (volDiff > 0) analysis += `Observamos um aumento no volume de tickets de ${dataLog[firstIndex].criados} para ${dataLog[lastIndex].criados}. `;
-    else analysis += `Notamos uma queda no volume de chamados de ${dataLog[firstIndex].criados} para ${dataLog[lastIndex].criados}. `;
+let analysis = `Comparativo do período: `;
+if (lastThreeMonths.length > 1) {
+    const volDiff = lastThreeMonths[lastIndex].criados - lastThreeMonths[firstIndex].criados;
+    if (volDiff > 0) analysis += `Observamos um aumento no volume de tickets de ${lastThreeMonths[firstIndex].criados} para ${lastThreeMonths[lastIndex].criados}. `;
+    else analysis += `Notamos uma queda no volume de chamados de ${lastThreeMonths[firstIndex].criados} para ${lastThreeMonths[lastIndex].criados}. `;
 
-    const slaDiff = dataLog[lastIndex].frPct - dataLog[firstIndex].frPct;
+    const slaDiff = lastThreeMonths[lastIndex].frPct - lastThreeMonths[firstIndex].frPct;
     if (slaDiff > 0) analysis += `A aprovação do SLA de primeira resposta melhorou em ${(slaDiff).toFixed(1)}%.`;
     else analysis += `A aprovação do SLA de primeira resposta teve uma variação de ${(slaDiff).toFixed(1)}%.`;
 }
@@ -93,13 +94,13 @@ fs.writeFileSync(outputCsv, canvaHeader.join(",") + "\n" + canvaRow.join(",") + 
 console.log(`✅ CSV Comparativo salvo em: ${outputCsv}`);
 
 // Gerar HTML Dashboard
-const labels = JSON.stringify(dataLog.map(d => d.mes));
-const dataCriados = JSON.stringify(dataLog.map(d => d.criados));
-const dataResolvidos = JSON.stringify(dataLog.map(d => d.resolvidos));
-const dataSlaFr = JSON.stringify(dataLog.map(d => d.frPct));
-const dataSlaRes = JSON.stringify(dataLog.map(d => d.resPct));
-const dataTempoFr = JSON.stringify(dataLog.map(d => d.frTempo));
-const dataTempoRes = JSON.stringify(dataLog.map(d => d.resTempo));
+const labels = JSON.stringify(lastThreeMonths.map(d => d.mes));
+const dataCriados = JSON.stringify(lastThreeMonths.map(d => d.criados));
+const dataResolvidos = JSON.stringify(lastThreeMonths.map(d => d.resolvidos));
+const dataSlaFr = JSON.stringify(lastThreeMonths.map(d => d.frPct));
+const dataSlaRes = JSON.stringify(lastThreeMonths.map(d => d.resPct));
+const dataTempoFr = JSON.stringify(lastThreeMonths.map(d => d.frTempo));
+const dataTempoRes = JSON.stringify(lastThreeMonths.map(d => d.resTempo));
 
 const htmlTemplate = `<!DOCTYPE html>
 <html lang="pt-BR">

@@ -74,8 +74,25 @@ const aggregation = {
   slaSummary: {
       frMet: 0, frBreached: 0, frTotalMillis: 0, frCount: 0,
       resMet: 0, resBreached: 0, resTotalMillis: 0, resCount: 0
+  },
+  cancelledReasons: {}, // { "Não fazer": X, "Duplicado": Y, "Rejeitado": Z }
+  drillDown: {
+      volumeByType: {},
+      rootCausesIncident: {},
+      rootCausesProblem: {},
+      byCity: {},
+      slaOffenders: {},
+      cancelledReasons: {} // { "Não fazer": [{key, summary, cause}], ... }
   }
 };
+
+function addDrillDown(category, key, issueKey) {
+   if (!aggregation.drillDown[category]) aggregation.drillDown[category] = {};
+   if (!aggregation.drillDown[category][key]) aggregation.drillDown[category][key] = [];
+   if (aggregation.drillDown[category][key].length < 100) {
+       aggregation.drillDown[category][key].push(issueKey);
+   }
+}
 
 // Validar Exclusões de Negócio based on Jira SLAs
 function isSlaValidForAggregation(issue, slaName) {
@@ -98,6 +115,23 @@ function normalizeSummary(summary) {
 
 const recurringGroups = {}; // { "City|Summary": { city, summary, issues: [createdDates] } }
 
+function extractTextFromADF(adf) {
+    if (!adf) return "";
+    let text = "";
+    if (typeof adf === 'string') return adf;
+    if (adf.type === 'text' && adf.text) {
+        text += adf.text;
+    }
+    if (adf.content && Array.isArray(adf.content)) {
+        adf.content.forEach(c => {
+            text += extractTextFromADF(c) + " ";
+        });
+    }
+    return text.trim();
+}
+
+const cancelledDetails = []; // Armazena detalhes qualitativos dos cancelamentos
+
 files.forEach(file => {
   const filepath = path.join(inputDir, file);
   const data = JSON.parse(fs.readFileSync(filepath, 'utf8'));
@@ -119,21 +153,25 @@ files.forEach(file => {
     const type = issue.fields.issuetype?.name || "N/A";
     
     aggregation.volumeByType[type] = (aggregation.volumeByType[type] || 0) + 1;
+    addDrillDown('volumeByType', type, key);
     
     const requestTypeObj = issue.fields.customfield_10010;
     const reqType = requestTypeObj?.requestType?.name || requestTypeObj?.name || (typeof requestTypeObj === "string" ? requestTypeObj : "N/A");
     
     if (type.toUpperCase().includes('INCIDENT') && reqType !== "N/A") {
         aggregation.rootCausesIncident[reqType] = (aggregation.rootCausesIncident[reqType] || 0) + 1;
+        addDrillDown('rootCausesIncident', reqType, key);
     }
     if (type.toUpperCase().includes('PROBLEM') && reqType !== "N/A") {
         aggregation.rootCausesProblem[reqType] = (aggregation.rootCausesProblem[reqType] || 0) + 1;
+        addDrillDown('rootCausesProblem', reqType, key);
     }
 
     // CITY Map
     const cityField = issue.fields.customfield_10105;
     const city = cityField?.value || (typeof cityField === "string" ? cityField : "Não Informado");
     aggregation.byCity[city] = (aggregation.byCity[city] || 0) + 1;
+    addDrillDown('byCity', city, key);
 
     const summary = issue.fields.summary || "N/A";
     const status = issue.fields.status?.name || "N/A";
@@ -152,6 +190,42 @@ files.forEach(file => {
     const resolvedStatuses = ['Completed', 'Fechada', 'Concluído', 'Resolvido'];
     if (resolvedStatuses.includes(status)) {
         aggregation.resolvedIssues++;
+    }
+
+    // Lógica de Cancelamento (Motivos)
+    const cancelMotivos = ['Não fazer', 'Duplicado', 'Rejeitado'];
+    if (cancelMotivos.includes(resolution)) {
+        aggregation.cancelledReasons[resolution] = (aggregation.cancelledReasons[resolution] || 0) + 1;
+        
+        const comments = issue.fields.comment?.comments || [];
+        let lastHumanComment = "Sem comentário registrado";
+        for (let i = comments.length - 1; i >= 0; i--) {
+            const author = comments[i].author?.displayName || 'Unknown';
+            if (!botNames.includes(author)) {
+                const bodyText = extractTextFromADF(comments[i].body);
+                if (!bodyText.includes("Notificação automática")) {
+                    lastHumanComment = bodyText;
+                    break;
+                }
+            }
+        }
+        
+        if (lastHumanComment === "Sem comentário registrado" && comments.length > 0) {
+            lastHumanComment = "[Automático] " + extractTextFromADF(comments[comments.length - 1].body);
+        }
+        
+        // Clean and limit string length
+        let cleanCause = lastHumanComment.replace(/\n/g, ' ').substring(0, 120);
+        if (lastHumanComment.length > 120) cleanCause += '...';
+
+        const cancelDetail = { key: issue.key, summary: summary, cause: cleanCause };
+        cancelledDetails.push({ ...cancelDetail, resolution });
+
+        // DrillDown rich objects (up to 100 per reason)
+        if (!aggregation.drillDown.cancelledReasons[resolution]) aggregation.drillDown.cancelledReasons[resolution] = [];
+        if (aggregation.drillDown.cancelledReasons[resolution].length < 100) {
+            aggregation.drillDown.cancelledReasons[resolution].push(cancelDetail);
+        }
     }
 
     // Lógica de Recorrência
@@ -181,7 +255,10 @@ files.forEach(file => {
          aggregation.slaSummary.frCount++;
          if (lastCycle.breached) { 
              aggregation.slaSummary.frBreached++;
-             if (reqType !== "N/A") aggregation.slaOffenders[reqType] = (aggregation.slaOffenders[reqType] || 0) + 1;
+             if (reqType !== "N/A") {
+                 aggregation.slaOffenders[reqType] = (aggregation.slaOffenders[reqType] || 0) + 1;
+                 addDrillDown('slaOffenders', reqType, key);
+             }
          }
          else aggregation.slaSummary.frMet++;
       }
@@ -563,6 +640,85 @@ const htmlTemplate = `<!DOCTYPE html>
 fs.writeFileSync(outputHtml, htmlTemplate, 'utf8');
 console.log(`✅ Dashboard HTML gerado: ${outputHtml}`);
 // Retornar dados completos via stdout para o servidor ler (Sem salvar arquivos)
+async function fetchBaselineSummary() {
+    const { JIRA_DOMAIN, JIRA_EMAIL, JIRA_API_TOKEN, START_DATE, END_DATE, MONTH_OFFSET } = process.env;
+    if (!JIRA_DOMAIN || !JIRA_EMAIL || !JIRA_API_TOKEN) return null;
+
+    const authToken = Buffer.from(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`).toString('base64');
+    let jqlQuery = "";
+    
+    // Calcular as datas reais usadas
+    let msStart, msEnd;
+    if (START_DATE && END_DATE) {
+        msStart = new Date(START_DATE).getTime();
+        msEnd = new Date(END_DATE).getTime();
+    } else {
+        const offset = parseInt(MONTH_OFFSET || "1");
+        const today = new Date();
+        const startOfThis = new Date(today.getFullYear(), today.getMonth() - Math.max(0, offset - 1), 1);
+        msEnd = startOfThis.getTime();
+        msStart = new Date(today.getFullYear(), today.getMonth() - offset, 1).getTime();
+    }
+    
+    const diffTime = msEnd - msStart;
+    const baselineStartMs = msStart - diffTime;
+    const baselineEndMs = msEnd - diffTime;
+
+    const bStart = new Date(baselineStartMs).toISOString().split('T')[0];
+    const bEnd = new Date(baselineEndMs).toISOString().split('T')[0];
+
+    jqlQuery = `project = "Grupo Cednet" AND created >= "${bStart}" AND created <= "${bEnd}"`;
+
+    try {
+        const response = await fetch(`https://${JIRA_DOMAIN}/rest/api/3/search/jql`, {
+            method: 'POST',
+            headers: { 'Authorization': `Basic ${authToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jql: jqlQuery,
+                fields: ["status", "customfield_10033", "customfield_10032"], // Precisamos apenas de status e SLAs
+                maxResults: 1000 // Apenas sumariar não requer extrair TODOS os detalhes profundos
+            })
+        });
+
+        if (!response.ok) return null;
+        const data = await response.json();
+        
+        let baselineTotal = data.total || 0;
+        let baselineResolved = 0;
+        let bFrMet = 0, bFrBreached = 0;
+        let bResMet = 0, bResBreached = 0;
+
+        (data.issues || []).forEach(issue => {
+            const st = issue.fields.status?.name || "";
+            if (['Completed', 'Fechada', 'Concluído', 'Resolvido'].includes(st)) baselineResolved++;
+            
+            const frSla = issue.fields.customfield_10033;
+            if (frSla && frSla.completedCycles && frSla.completedCycles.length > 0) {
+                if (frSla.completedCycles[frSla.completedCycles.length - 1].breached) bFrBreached++;
+                else bFrMet++;
+            }
+            const resSla = issue.fields.customfield_10032;
+            if (resSla && resSla.completedCycles && resSla.completedCycles.length > 0) {
+                if (resSla.completedCycles[resSla.completedCycles.length - 1].breached) bResBreached++;
+                else bResMet++;
+            }
+        });
+
+        return { 
+            total: baselineTotal, 
+            resolved: baselineTotal > 0 ? (baselineResolved / baselineTotal) : 0, 
+            frBreached: bFrBreached, frTotal: (bFrMet + bFrBreached),
+            resBreached: bResBreached, resTotal: (bResMet + bResBreached),
+            bStart, bEnd
+        };
+    } catch {
+        return null; // Falha silenciosa caso n consiga gerar a trend
+    }
+}
+
+(async () => {
+const baselineDelta = await fetchBaselineSummary();
+
 const enrichedOutput = {
     ...aggregation,
     avgResolutionHoursByType,
@@ -574,10 +730,14 @@ const enrichedOutput = {
     dailyFrAvg,
     dailyResAvg,
     topRecurring,
+    cancelledReasons: aggregation.cancelledReasons,
+    cancelledDetails,
     timeline: {
         incident: incidentTimeline,
         change: changeTimeline,
         problem: problemTimeline
-    }
+    },
+    baselineDelta
 };
 console.log('###DATA###' + JSON.stringify(enrichedOutput) + '###DATA###');
+})();
